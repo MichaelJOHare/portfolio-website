@@ -45,7 +45,7 @@ export default function NavigationBar() {
           </NavbarItem>
           <DropdownMenu
             aria-label="Projects"
-            className="w-[340px]"
+            //className="w-[340px]"
             itemClasses={{
               base: "gap-4",
             }}
