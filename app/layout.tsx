@@ -4,7 +4,9 @@ import { Inter } from "next/font/google";
 import { Providers } from "./providers";
 import SectionContainer from "./components/SectionContainer";
 import Header from "./components/Header";
+import Footer from "./components/Footer";
 import "./globals.css";
+import "@theme-toggles/react/css/Expand.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -59,6 +61,16 @@ export default function RootLayout({
       className="scroll-smooth"
       suppressHydrationWarning
     >
+      <meta
+        name="theme-color"
+        media="(prefers-color-scheme: light)"
+        content="#fff"
+      />
+      <meta
+        name="theme-color"
+        media="(prefers-color-scheme: dark)"
+        content="#000"
+      />
       <body
         className={`${inter.className} bg-white text-black dark:bg-zinc-900 dark:text-white antialiased`}
       >
@@ -67,6 +79,7 @@ export default function RootLayout({
             <div className="flex h-screen flex-col justify-between font-sans">
               <Header />
               <main>{children}</main>
+              <Footer />
             </div>
           </SectionContainer>
         </Providers>

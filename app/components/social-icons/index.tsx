@@ -1,4 +1,4 @@
-import { Mail, Github, Linkedin, Pdf } from "./socialIcons";
+import { Mail, Github, Linkedin, Pdf } from "./icons";
 
 const components = {
   mail: Mail,
