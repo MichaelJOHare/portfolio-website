@@ -12,7 +12,11 @@ const config: Config = {
       xs: "565px",
       ...defaultTheme.screens,
     },
-    extend: {},
+    extend: {
+      screens: {
+        "3xl": "1660px",
+      },
+    },
   },
   darkMode: "class",
   plugins: [],

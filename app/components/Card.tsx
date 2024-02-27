@@ -9,12 +9,18 @@ interface CardProps {
   playable?: boolean;
 }
 
-const Card = ({ title, description, imgSrc, href, playable }: CardProps) => (
+export const Card = ({
+  title,
+  description,
+  imgSrc,
+  href,
+  playable,
+}: CardProps) => (
   <div className="md max-w-[544px] p-4 md:w-1/2">
     <div
       className={`${
         imgSrc && "h-full"
-      }  overflow-hidden rounded-md border-2 border-gray-200 border-opacity-60 dark:border-gray-700`}
+      }  overflow-hidden rounded-md border-2 border-gray-200 border-opacity-60 dark:border-gray-700 hover:bg-slate-100 dark:hover:bg-zinc-800`}
     >
       {imgSrc &&
         (href ? (
@@ -23,7 +29,7 @@ const Card = ({ title, description, imgSrc, href, playable }: CardProps) => (
               alt={title}
               src={imgSrc}
               className="object-cover md:h-36 lg:h-48"
-              style={{ objectPosition: "50% 25%" }}
+              style={{ objectPosition: "50% 5%" }}
               width={544}
               height={306}
             />
@@ -33,7 +39,7 @@ const Card = ({ title, description, imgSrc, href, playable }: CardProps) => (
             alt={title}
             src={imgSrc}
             className="object-cover md:h-36 lg:h-48"
-            style={{ objectPosition: "50% 25%" }}
+            style={{ objectPosition: "50% 5%" }}
             width={544}
             height={306}
           />
@@ -64,5 +70,3 @@ const Card = ({ title, description, imgSrc, href, playable }: CardProps) => (
     </div>
   </div>
 );
-
-export default Card;
