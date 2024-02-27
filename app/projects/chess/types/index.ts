@@ -5,18 +5,37 @@ export type Square = {
 };
 
 export type Player = {
-  color: string;
-  type: string;
+  color: PlayerColor;
+  type: PlayerType;
 };
+
+export enum PlayerType {
+  HUMAN = "Human",
+  COMPUTER = "Computer",
+}
+
+export enum PlayerColor {
+  WHITE = "white",
+  BLACK = "black",
+}
 
 export type Piece = {
   player: Player;
-  type: string;
-  color: string;
+  type: PieceType;
+  color: PlayerColor;
   currentSquare: Square;
   movementStrategy: MovementStrategy;
   isAlive: boolean;
 };
+
+export enum PieceType {
+  PAWN = "pawn",
+  ROOK = "rook",
+  KNIGHT = "knight",
+  BISHOP = "bishop",
+  QUEEN = "queen",
+  KING = "king",
+}
 
 export type BoardStateContext = {
   board: Square[][];
@@ -35,9 +54,10 @@ export type GameStateContext = {
   currentPlayer: Player;
   capturedPieces: Piece[];
   enPassantTarget?: Square;
+  isKingInCheck: (player: Player) => boolean;
 };
 
-export type moveHistory = {
+export type MoveHistory = {
   history: Move[];
   undoneMoves: Move[];
   halfMoveClock: number;

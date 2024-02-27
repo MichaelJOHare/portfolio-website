@@ -11,7 +11,7 @@ export default function Board() {
         row.map((square, colIndex) => (
           <div
             key={`${rowIndex}-${colIndex}`}
-            className={`w-full h-full ${
+            className={`flex justify-center items-center w-full h-full aspect-square ${
               (rowIndex + colIndex) % 2 === 0
                 ? "bg-orange-200"
                 : "bg-yellow-900"
@@ -19,6 +19,7 @@ export default function Board() {
           >
             {square.piece && (
               <img
+                className="h-3/4"
                 src={`/assets/images/${square.piece.color}-${square.piece.type}.svg`}
                 alt=""
               />
