@@ -10,7 +10,6 @@ import {
   createPreparedMove,
   isEmpty,
   isOccupiedByOpponent,
-  isAttackedByOpponent,
   getPieceAt,
 } from "../utils";
 
@@ -64,42 +63,69 @@ export const kingMovementStrategy: MovementStrategy = (
     }
   });
 
-  const isEmptyAndNotAttacked = (
-    board: Square[][],
-    king: Piece,
-    startCol: number,
-    endCol: number,
-    player: Player
-  ) => {
-    for (let col = startCol; col <= endCol; col++) {
-      if (
-        !isEmpty(board, king.currentSquare.row, col) ||
-        isAttackedByOpponent(board, king.currentSquare.row, col, player)
-      ) {
-        return false;
-      }
+  const canCastleKingSide = (board, king, rookPositions, moveHistory) => {
+    const { kingSideRookCol } = rookPositions;
+    const rook = getPieceAt(board, king.currentSquare.row, kingSideRookCol);
+
+    const kingHasMoved = moveHistory.includes(king);
+    const rookHasMoved = moveHistory.includes(rook);
+
+    if (kingHasMoved || rookHasMoved) return false;
+
+    return isEmptyAndNotAttacked(
+      board,
+      king,
+      king.currentSquare.col + 1,
+      king.currentSquare.col + 2,
+      king.player
+    );
+  };
+
+  const canCastleQueenSide = (board, king, rookPositions, moveHistory) => {
+    const { queenSideRookCol } = rookPositions;
+    const rook = getPieceAt(board, king.currentSquare.row, queenSideRookCol);
+
+    const kingHasMoved = moveHistory.includes(king);
+    const rookHasMoved = moveHistory.includes(rook);
+
+    if (kingHasMoved || rookHasMoved) return false;
+
+    return isEmptyAndNotAttacked(
+      board,
+      king,
+      king.currentSquare.col - 2,
+      king.currentSquare.col - 1,
+      king.player
+    );
+  };
+
+  const addCastlingMoves = (board, king, legalMoves, moveHistory) => {
+    const rookPositions = {
+      kingSideRookCol: 7,
+      queenSideRookCol: 0,
+    };
+
+    if (canCastleKingSide(board, king, rookPositions, moveHistory)) {
+      legalMoves.push(
+        createPreparedMove(
+          king,
+          king.currentSquare,
+          createSquare(king.currentSquare.row, king.currentSquare.col + 2),
+          undefined
+        )
+      );
     }
-    return true;
+
+    if (canCastleQueenSide(board, king, rookPositions, moveHistory)) {
+      legalMoves.push(
+        createPreparedMove(
+          king,
+          king.currentSquare,
+          createSquare(king.currentSquare.row, king.currentSquare.col - 2),
+          undefined
+        )
+      );
+    }
   };
-
-  const canCastleKingSide = (board, piece, moveHistory) => {
-    // Implement the logic to check if king-side castling is possible.
-    // This includes checking for the absence of moves for the king and the rook, no pieces in between, and no threats to the passing squares.
-    return false; // Placeholder
-  };
-
-  const canCastleQueenSide = (board, piece, moveHistory) => {
-    // Similarly, implement the logic for queen-side castling.
-    return false; // Placeholder
-  };
-
-  // Assuming you've added the basic king moves to legalMoves already
-  if (canCastleKingSide(board, piece, moveHistory)) {
-    // Add the king-side castling move to legalMoves
-  }
-
-  if (canCastleQueenSide(board, piece, moveHistory)) {
-    // Add the queen-side castling move to legalMoves
-  }
   return legalMoves;
 };

@@ -57,6 +57,24 @@ export const isAttackedByOpponent = (
   );
 };
 
+const isEmptyAndNotAttacked = (
+  board: Square[][],
+  king: Piece,
+  startCol: number,
+  endCol: number,
+  player: Player
+) => {
+  for (let col = startCol; col <= endCol; col++) {
+    if (
+      !isEmpty(board, king.currentSquare.row, col) ||
+      isAttackedByOpponent(board, king.currentSquare.row, col, player)
+    ) {
+      return false;
+    }
+  }
+  return true;
+};
+
 export const copyBoard = (board: Square[][]): Square[][] => {
   return board.map((row) =>
     row.map((square) => ({
