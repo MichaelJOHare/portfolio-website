@@ -8,7 +8,7 @@ const siteMetadata = {
   siteUrl: "https://michaeljohare.com",
   email: "repeats_fondant_0f@icloud.com",
   siteRepo: "https://github.com/MichaelJOHare/portfolio-website",
-  github: "https://github.com",
+  github: "https://github.com/MichaelJOHare",
   twitter: "https://twitter.com/Twitter",
   facebook: "https://facebook.com",
   youtube: "https://youtube.com",
