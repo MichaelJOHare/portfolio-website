@@ -1,4 +1,4 @@
-import { executeMove } from "./move";
+/* import { executeMove } from "./move";
 import { createSquare } from "./square";
 import { Move, MoveHistory, PieceType, PlayerColor } from "../types";
 
@@ -34,4 +34,7 @@ export const getEnPassantTarget = (moveHistory: MoveHistory) => {
     return createSquare((move.from.row + move.to.row) / 2, move.from.col);
   }
   return null;
-};
+}; 
+
+Shifting this over to useGameManagement
+*/
