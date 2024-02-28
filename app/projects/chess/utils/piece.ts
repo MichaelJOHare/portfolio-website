@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from "uuid";
 import {
   Piece,
   Player,
@@ -13,14 +14,17 @@ export const createPiece = (
   color: PlayerColor,
   currentSquare: Square,
   movementStrategy: MovementStrategy,
-  isAlive: boolean
+  isAlive: boolean,
+  hasMoved?: boolean
 ): Piece => ({
+  id: uuidv4(),
   player,
   type,
   color,
   currentSquare,
   movementStrategy,
   isAlive,
+  hasMoved,
 });
 
 export const copyPiece = (piece: Piece): Piece => {

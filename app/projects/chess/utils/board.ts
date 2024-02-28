@@ -27,16 +27,6 @@ export const isEmpty = (
   return !board[row][col].piece;
 };
 
-export const isOccupiedByOpponent = (
-  board: Square[][],
-  row: number,
-  col: number,
-  player: Player
-): boolean => {
-  const piece = board[row][col].piece;
-  return !!piece && piece.player !== player;
-};
-
 export const isAttackedByOpponent = (
   board: Square[][],
   row: number,
@@ -57,7 +47,7 @@ export const isAttackedByOpponent = (
   );
 };
 
-const isEmptyAndNotAttacked = (
+export const isEmptyAndNotAttacked = (
   board: Square[][],
   king: Piece,
   startCol: number,

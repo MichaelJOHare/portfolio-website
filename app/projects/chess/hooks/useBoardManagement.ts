@@ -1,7 +1,15 @@
 import { useCallback, useState, useRef } from "react";
-import { Piece, Player, Square, PlayerColor, PieceType } from "../types";
+import {
+  Piece,
+  Player,
+  Square,
+  PlayerColor,
+  PieceType,
+  PlayerType,
+} from "../types";
 import { bishopMovementStrategy } from "../strategies/bishopMovementStrategy";
 import { defaultBoard } from "../utils/board";
+import { createPiece, createPlayer, createSquare } from "../utils";
 
 export const useBoardManagement = () => {
   const [board, setBoard] = useState<Square[][]>(defaultBoard());
@@ -66,69 +74,76 @@ export const useBoardManagement = () => {
   );
 
   const initializeBoardCalled = useRef(false);
-  const initializeBoard = useCallback(
-    (player1: Player, player2: Player) => {
-      if (initializeBoardCalled.current) {
-        return;
-      }
+  const initializeBoard = useCallback(() => {
+    if (initializeBoardCalled.current) {
+      return;
+    }
 
-      const setup = [
-        {
-          type: PieceType.ROOK,
-          positions: [
-            { row: 0, col: 0 },
-            { row: 0, col: 7 },
-          ],
-        },
-        {
-          type: PieceType.KNIGHT,
-          positions: [
-            { row: 0, col: 1 },
-            { row: 0, col: 6 },
-          ],
-        },
-        {
-          type: PieceType.BISHOP,
-          positions: [
-            { row: 0, col: 2 },
-            { row: 0, col: 5 },
-          ],
-        },
-        { type: PieceType.QUEEN, positions: [{ row: 0, col: 3 }] },
-        { type: PieceType.KING, positions: [{ row: 0, col: 4 }] },
-        {
-          type: PieceType.PAWN,
-          positions: Array.from({ length: 8 }, (_, col) => ({ row: 1, col })),
-        },
-      ];
+    const setup = [
+      {
+        type: PieceType.ROOK,
+        positions: [
+          { row: 0, col: 0 },
+          { row: 0, col: 7 },
+        ],
+      },
+      {
+        type: PieceType.KNIGHT,
+        positions: [
+          { row: 0, col: 1 },
+          { row: 0, col: 6 },
+        ],
+      },
+      {
+        type: PieceType.BISHOP,
+        positions: [
+          { row: 0, col: 2 },
+          { row: 0, col: 5 },
+        ],
+      },
+      { type: PieceType.QUEEN, positions: [{ row: 0, col: 3 }] },
+      { type: PieceType.KING, positions: [{ row: 0, col: 4 }] },
+      {
+        type: PieceType.PAWN,
+        positions: Array.from({ length: 8 }, (_, col) => ({ row: 1, col })),
+      },
+    ];
 
-      [PlayerColor.WHITE, PlayerColor.BLACK].forEach((color) => {
-        const rowOffset = color === PlayerColor.WHITE ? 0 : 7;
-        const pawnRow = color === PlayerColor.WHITE ? 1 : 6;
+    [PlayerColor.WHITE, PlayerColor.BLACK].forEach((color) => {
+      const rowOffset = color === PlayerColor.WHITE ? 0 : 7;
+      const pawnRow = color === PlayerColor.WHITE ? 1 : 6;
 
-        setup.forEach(({ type, positions }) => {
-          positions.forEach(({ row, col }) => {
-            const piece = {
-              player: color === PlayerColor.WHITE ? player1 : player2,
-              type,
-              color,
-              currentSquare: {
-                row: row + (type === PieceType.PAWN ? pawnRow - 1 : rowOffset),
-                col,
-              },
-              movementStrategy: bishopMovementStrategy, // placeholder
-              isAlive: true,
-            };
+      setup.forEach(({ type, positions }) => {
+        positions.forEach(({ row, col }) => {
+          const player =
+            color === PlayerColor.WHITE
+              ? createPlayer(PlayerColor.WHITE, PlayerType.HUMAN)
+              : createPlayer(PlayerColor.BLACK, PlayerType.HUMAN);
+          const pieceRow =
+            row + (type === PieceType.PAWN ? pawnRow - 1 : rowOffset);
+          const square = createSquare(pieceRow, col);
+          const hasMoved =
+            type === PieceType.ROOK || type === PieceType.KING
+              ? false
+              : undefined;
 
-            addPiece(piece);
-          });
+          const piece = createPiece(
+            player,
+            type,
+            color,
+            square,
+            bishopMovementStrategy, // placeholder
+            true,
+            hasMoved
+          );
+
+          addPiece(piece);
         });
       });
+    });
 
-      initializeBoardCalled.current = true;
-    },
-    [addPiece]
-  );
+    initializeBoardCalled.current = true;
+  }, [addPiece]);
 
   return {
     board,

@@ -20,12 +20,14 @@ export enum PlayerColor {
 }
 
 export type Piece = {
+  id: string;
   player: Player;
   type: PieceType;
   color: PlayerColor;
   currentSquare: Square;
   movementStrategy: MovementStrategy;
   isAlive: boolean;
+  hasMoved?: boolean;
 };
 
 export enum PieceType {
@@ -40,28 +42,22 @@ export enum PieceType {
 export type BoardStateContext = {
   board: Square[][];
   piecesByPlayer: Map<Player, Piece[]>;
-  initializeBoard: (player1: Player, player2: Player) => void;
-  clearBoard: () => void;
-  addPiece: (piece: Piece) => void;
-  removePiece: (piece: Piece) => void;
 };
 
 export type GameStateContext = {
-  halfMoveClock: number;
-  fullMoveNumber: number;
   player1: Player;
   player2: Player;
   currentPlayer: Player;
   capturedPieces: Piece[];
-  enPassantTarget?: Square;
-  isKingInCheck: (player: Player) => boolean;
-};
-
-export type MoveHistory = {
-  history: Move[];
+  moveHistory: Move[];
   undoneMoves: Move[];
   halfMoveClock: number;
   fullMoveNumber: number;
+  enPassantTarget?: Square;
+  executeMove: (move: Move) => void;
+  undoLastMove: () => void;
+  switchPlayer: () => void;
+  isKingInCheck: (player: Player) => boolean;
 };
 
 export type Move = {
@@ -69,20 +65,10 @@ export type Move = {
   to: Square;
   piece: Piece;
   capturedPiece?: Piece;
-  board: BoardStateContext;
-  isPromotion?: boolean;
-  isCapture?: boolean;
-};
-
-export type PreparedMove = {
-  piece: Piece;
-  from: Square;
-  to: Square;
-  capturedPiece?: Piece;
   isPromotion?: boolean;
   isCapture?: boolean;
 };
 
 export interface MovementStrategy {
-  (board: Square[][], piece: Piece, moveHistory: Move[]): PreparedMove[];
+  (board: Square[][], piece: Piece, moveHistory: Move[]): Move[];
 }

@@ -1,14 +1,9 @@
-import { BoardStateContext, Piece, Move, MoveHistory } from "../types";
-import { createMove, copyPiece } from "./index";
-
-const wouldResultInCheck = (
+/* const wouldResultInCheck = (
   boardContext: BoardStateContext,
   piece: Piece,
-  moveHistory: MoveHistory,
   move: Move
 ): boolean => {
   const copiedBoardContext = boardContext.copy();
-  const copiedMoveHistory = moveHistory.copy();
   const copiedPiece = copyPiece(piece);
   const copiedCapturedPiece = !!move.capturedPiece
     ? copyPiece(move.capturedPiece)
@@ -19,12 +14,13 @@ const wouldResultInCheck = (
     copiedPiece,
     move.from,
     move.to,
-    copiedBoardContext,
     copiedCapturedPiece
   );
 
-  copiedMoveHistory.makeMove(copiedMove);
-  //copiedBoard.initializePieceManager(); <- unneeded since BoardContext has piecesByPlayer map as a property?
+  useGameStateManagement.executeMove(copiedMove);
 
   return copiedBoardContext.isKingInCheck(copiedPlayer);
 };
+
+probably belongs in useGame(or Board)StateManagement
+*/
