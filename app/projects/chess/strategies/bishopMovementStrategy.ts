@@ -1,5 +1,5 @@
 import { Move, MovementStrategy } from "../types";
-import { createSquare, createMove, getPieceAt } from "../utils";
+import { createSquare, createStandardMove, getPieceAt } from "../utils";
 
 export const bishopMovementStrategy: MovementStrategy = (board, piece) => {
   let legalMoves: Move[] = [];
@@ -26,7 +26,12 @@ export const bishopMovementStrategy: MovementStrategy = (board, piece) => {
       const targetSquare = createSquare(newRow, newCol);
       const capturedPiece = getPieceAt(board, newRow, newCol);
       legalMoves.push(
-        createMove(piece, piece.currentSquare, targetSquare, capturedPiece)
+        createStandardMove(
+          piece,
+          piece.currentSquare,
+          targetSquare,
+          capturedPiece
+        )
       );
       break;
     }

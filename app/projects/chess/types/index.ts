@@ -41,12 +41,12 @@ export enum PieceType {
 
 export type BoardStateContext = {
   board: Square[][];
+  player1: Player;
+  player2: Player;
   piecesByPlayer: Map<Player, Piece[]>;
 };
 
 export type GameStateContext = {
-  player1: Player;
-  player2: Player;
   currentPlayer: Player;
   capturedPieces: Piece[];
   moveHistory: Move[];
@@ -60,14 +60,25 @@ export type GameStateContext = {
   isKingInCheck: (player: Player) => boolean;
 };
 
-export type Move = {
+export type MoveType = "Standard" | "Castling" | "EnPassant" | "Promotion";
+
+export interface Move {
+  type: MoveType;
   from: Square;
   to: Square;
   piece: Piece;
   capturedPiece?: Piece;
   isPromotion?: boolean;
   isCapture?: boolean;
-};
+}
+
+export interface CastlingMove extends Move {
+  rook: Piece;
+  kingFrom: Square;
+  kingTo: Square;
+  rookFrom: Square;
+  rookTo: Square;
+}
 
 export interface MovementStrategy {
   (board: Square[][], piece: Piece, moveHistory: Move[]): Move[];

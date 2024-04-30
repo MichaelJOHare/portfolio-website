@@ -24,3 +24,5 @@
 
 probably belongs in useGame(or Board)StateManagement
 */
+
+// Make function to get correct movementStrategy based on piece?

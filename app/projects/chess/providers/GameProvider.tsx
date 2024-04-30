@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { BoardContext } from "../context/BoardStateContext";
 import { useBoardManagement } from "../hooks/useBoardManagement";
-//import { GameContext } from "../context/GameStateContext";
-//import { useGameManagement } from "../hooks/useGameManagement";
+import { GameContext } from "../context/GameStateContext";
+import { useGameManagement } from "../hooks/useGameManagement";
 
 interface Props {
   children: React.ReactNode;
@@ -12,6 +12,10 @@ interface Props {
 
 export default function GameProvider({ children }: Props) {
   const boardManagement = useBoardManagement();
+  const gameManagement = useGameManagement(
+    boardManagement.player1,
+    boardManagement.player2
+  );
   const [isBoardInitialized, setIsBoardInitialized] = useState(false);
 
   const handleInitializeBoard = () => {
@@ -26,12 +30,14 @@ export default function GameProvider({ children }: Props) {
   }, [isBoardInitialized]);
 
   return (
-    <BoardContext.Provider
-      value={{
-        ...boardManagement,
-      }}
-    >
-      {children}
-    </BoardContext.Provider>
+    <GameContext.Provider value={{ ...gameManagement }}>
+      <BoardContext.Provider
+        value={{
+          ...boardManagement,
+        }}
+      >
+        {children}
+      </BoardContext.Provider>
+    </GameContext.Provider>
   );
 }

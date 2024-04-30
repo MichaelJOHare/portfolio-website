@@ -1,7 +1,8 @@
 import { MovementStrategy, Piece, Square, Move, PieceType } from "../types";
 import {
   createSquare,
-  createMove,
+  createStandardMove,
+  createCastlingMove,
   getPieceAt,
   isEmptyAndNotAttacked,
 } from "../utils";
@@ -30,7 +31,12 @@ export const kingMovementStrategy: MovementStrategy = (board, piece) => {
       const targetSquare = createSquare(newRow, newCol);
       const capturedPiece = getPieceAt(board, newRow, newCol);
       legalMoves.push(
-        createMove(piece, piece.currentSquare, targetSquare, capturedPiece)
+        createStandardMove(
+          piece,
+          piece.currentSquare,
+          targetSquare,
+          capturedPiece
+        )
       );
     }
     addCastlingMoves(board, piece, legalMoves);
@@ -101,27 +107,51 @@ export const kingMovementStrategy: MovementStrategy = (board, piece) => {
       kingSideRookCol: 7,
       queenSideRookCol: 0,
     };
+    const kingSideRook = getPieceAt(
+      board,
+      king.currentSquare.row,
+      rookPositions.kingSideRookCol
+    );
+    const queenSideRook = getPieceAt(
+      board,
+      king.currentSquare.row,
+      rookPositions.queenSideRookCol
+    );
 
-    if (canCastleKingSide(board, king, rookPositions.kingSideRookCol)) {
+    if (
+      canCastleKingSide(board, king, rookPositions.kingSideRookCol) &&
+      kingSideRook
+    ) {
       legalMoves.push(
-        createMove(
-          // needs to be castling move when implemented
+        createCastlingMove(
           king,
+          kingSideRook,
           king.currentSquare,
           createSquare(king.currentSquare.row, king.currentSquare.col + 2),
-          undefined
+          kingSideRook.currentSquare,
+          createSquare(
+            kingSideRook.currentSquare.row,
+            kingSideRook.currentSquare.col - 2
+          )
         )
       );
     }
 
-    if (canCastleQueenSide(board, king, rookPositions.queenSideRookCol)) {
+    if (
+      canCastleQueenSide(board, king, rookPositions.queenSideRookCol) &&
+      queenSideRook
+    ) {
       legalMoves.push(
-        createMove(
-          // needs to be castling move when implemented
+        createCastlingMove(
           king,
+          queenSideRook,
           king.currentSquare,
           createSquare(king.currentSquare.row, king.currentSquare.col - 2),
-          undefined
+          queenSideRook.currentSquare,
+          createSquare(
+            queenSideRook.currentSquare.row,
+            queenSideRook.currentSquare.col + 3
+          )
         )
       );
     }

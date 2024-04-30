@@ -1,6 +1,6 @@
-import { Move, Square, Piece } from "../types";
+import { Move, CastlingMove, Square, Piece } from "../types";
 
-export const createMove = (
+export const createStandardMove = (
   piece: Piece,
   from: Square,
   to: Square,
@@ -8,6 +8,7 @@ export const createMove = (
   isPromotion?: boolean,
   isCapture?: boolean
 ): Move => ({
+  type: "Standard",
   from,
   to,
   capturedPiece,
@@ -16,6 +17,27 @@ export const createMove = (
   isCapture,
 });
 
-// createCastlingMove
+export const createCastlingMove = (
+  king: Piece,
+  rook: Piece,
+  kingFrom: Square,
+  kingTo: Square,
+  rookFrom: Square,
+  rookTo: Square
+): CastlingMove => ({
+  type: "Castling",
+  from: kingFrom,
+  to: kingTo,
+  capturedPiece: undefined,
+  piece: king,
+  rook: rook,
+  isPromotion: false,
+  isCapture: false,
+  kingFrom,
+  kingTo,
+  rookFrom,
+  rookTo,
+});
+
 // createEnPassantMove
 // createPromotionMove

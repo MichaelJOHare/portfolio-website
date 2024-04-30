@@ -12,6 +12,8 @@ import { defaultBoard } from "../utils/board";
 import { createPiece, createPlayer, createSquare } from "../utils";
 
 export const useBoardManagement = () => {
+  const player1 = createPlayer(PlayerColor.WHITE, PlayerType.HUMAN);
+  const player2 = createPlayer(PlayerColor.BLACK, PlayerType.HUMAN);
   const [board, setBoard] = useState<Square[][]>(defaultBoard());
   const [piecesByPlayer, setPiecesByPlayer] = useState<Map<Player, Piece[]>>(
     new Map()
@@ -53,7 +55,7 @@ export const useBoardManagement = () => {
         const playerPieces =
           updatedPiecesByPlayer.get(pieceToRemove.player) || [];
         const filteredPlayerPieces = playerPieces.filter(
-          (piece) => piece !== pieceToRemove
+          (piece) => piece.id !== pieceToRemove.id
         );
         updatedPiecesByPlayer.set(pieceToRemove.player, filteredPlayerPieces);
         return updatedPiecesByPlayer;
@@ -62,7 +64,7 @@ export const useBoardManagement = () => {
       setBoard((currentBoard) => {
         return currentBoard.map((row) =>
           row.map((square) => {
-            if (square.piece === pieceToRemove) {
+            if (square.piece && square.piece.id === pieceToRemove.id) {
               return { ...square, piece: undefined };
             }
             return square;
@@ -115,10 +117,7 @@ export const useBoardManagement = () => {
 
       setup.forEach(({ type, positions }) => {
         positions.forEach(({ row, col }) => {
-          const player =
-            color === PlayerColor.WHITE
-              ? createPlayer(PlayerColor.WHITE, PlayerType.HUMAN)
-              : createPlayer(PlayerColor.BLACK, PlayerType.HUMAN);
+          const player = color === PlayerColor.WHITE ? player1 : player2;
           const pieceRow =
             row + (type === PieceType.PAWN ? pawnRow - 1 : rowOffset);
           const square = createSquare(pieceRow, col);
@@ -143,11 +142,12 @@ export const useBoardManagement = () => {
     });
 
     initializeBoardCalled.current = true;
-  }, [addPiece]);
+  }, [player1, player2, addPiece]);
 
   return {
+    player1,
+    player2,
     board,
-    setBoard,
     piecesByPlayer,
     setPiecesByPlayer,
     addPiece,
