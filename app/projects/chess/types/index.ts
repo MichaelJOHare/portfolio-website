@@ -1,7 +1,15 @@
+import { ReactNode } from "react";
+
 export type Square = {
   row: number;
   col: number;
   piece?: Piece;
+};
+
+export type SquareProps = {
+  row: number;
+  col: number;
+  children: ReactNode;
 };
 
 export type Player = {

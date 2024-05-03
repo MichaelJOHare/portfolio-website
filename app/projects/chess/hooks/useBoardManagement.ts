@@ -10,6 +10,7 @@ import {
 import { bishopMovementStrategy } from "../strategies/bishopMovementStrategy";
 import { defaultBoard } from "../utils/board";
 import { createPiece, createPlayer, createSquare } from "../utils";
+import { kingMovementStrategy, pawnMovementStrategy } from "../strategies";
 
 export const useBoardManagement = () => {
   const player1 = createPlayer(PlayerColor.WHITE, PlayerType.HUMAN);
@@ -88,6 +89,7 @@ export const useBoardManagement = () => {
           { row: 0, col: 0 },
           { row: 0, col: 7 },
         ],
+        movementStrategy: kingMovementStrategy, //placeholder
       },
       {
         type: PieceType.KNIGHT,
@@ -95,6 +97,7 @@ export const useBoardManagement = () => {
           { row: 0, col: 1 },
           { row: 0, col: 6 },
         ],
+        movementStrategy: kingMovementStrategy, //placeholder
       },
       {
         type: PieceType.BISHOP,
@@ -102,12 +105,22 @@ export const useBoardManagement = () => {
           { row: 0, col: 2 },
           { row: 0, col: 5 },
         ],
+        movementStrategy: bishopMovementStrategy,
       },
-      { type: PieceType.QUEEN, positions: [{ row: 0, col: 3 }] },
-      { type: PieceType.KING, positions: [{ row: 0, col: 4 }] },
+      {
+        type: PieceType.QUEEN,
+        positions: [{ row: 0, col: 3 }],
+        movementStrategy: kingMovementStrategy, //placeholder
+      },
+      {
+        type: PieceType.KING,
+        positions: [{ row: 0, col: 4 }],
+        movementStrategy: kingMovementStrategy,
+      },
       {
         type: PieceType.PAWN,
         positions: Array.from({ length: 8 }, (_, col) => ({ row: 1, col })),
+        movementStrategy: pawnMovementStrategy,
       },
     ];
 
@@ -115,7 +128,7 @@ export const useBoardManagement = () => {
       const rowOffset = color === PlayerColor.WHITE ? 0 : 7;
       const pawnRow = color === PlayerColor.WHITE ? 1 : 6;
 
-      setup.forEach(({ type, positions }) => {
+      setup.forEach(({ type, positions, movementStrategy }) => {
         positions.forEach(({ row, col }) => {
           const player = color === PlayerColor.WHITE ? player1 : player2;
           const pieceRow =
@@ -131,7 +144,7 @@ export const useBoardManagement = () => {
             type,
             color,
             square,
-            bishopMovementStrategy, // placeholder
+            movementStrategy, // placeholder
             true,
             hasMoved
           );
