@@ -21,10 +21,12 @@ export const bishopMovementStrategy: MovementStrategy = (board, piece) => {
       newRow += dRow;
       newCol += dCol;
 
-      if (newRow < 0 || newRow >= 8 || newCol < 0 || newCol >= 8) break;
-
       const targetSquare = createSquare(newRow, newCol);
-      const capturedPiece = getPieceAt(board, newRow, newCol);
+      const targetPiece = getPieceAt(board, newRow, newCol);
+      const capturedPiece =
+        targetPiece && targetPiece.color !== piece.color
+          ? targetPiece
+          : undefined;
       legalMoves.push(
         createStandardMove(
           piece,

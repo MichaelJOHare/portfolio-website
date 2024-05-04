@@ -7,10 +7,16 @@ import {
   PieceType,
   PlayerType,
 } from "../types";
-import { bishopMovementStrategy } from "../strategies/bishopMovementStrategy";
 import { defaultBoard } from "../utils/board";
 import { createPiece, createPlayer, createSquare } from "../utils";
-import { kingMovementStrategy, pawnMovementStrategy } from "../strategies";
+import {
+  kingMovementStrategy,
+  pawnMovementStrategy,
+  queenMovementStrategy,
+  rookMovementStrategy,
+  knightMovementStrategy,
+  bishopMovementStrategy,
+} from "../strategies";
 
 export const useBoardManagement = () => {
   const player1 = createPlayer(PlayerColor.WHITE, PlayerType.HUMAN);
@@ -89,7 +95,7 @@ export const useBoardManagement = () => {
           { row: 0, col: 0 },
           { row: 0, col: 7 },
         ],
-        movementStrategy: kingMovementStrategy, //placeholder
+        movementStrategy: rookMovementStrategy,
       },
       {
         type: PieceType.KNIGHT,
@@ -97,7 +103,7 @@ export const useBoardManagement = () => {
           { row: 0, col: 1 },
           { row: 0, col: 6 },
         ],
-        movementStrategy: kingMovementStrategy, //placeholder
+        movementStrategy: knightMovementStrategy,
       },
       {
         type: PieceType.BISHOP,
@@ -110,7 +116,7 @@ export const useBoardManagement = () => {
       {
         type: PieceType.QUEEN,
         positions: [{ row: 0, col: 3 }],
-        movementStrategy: kingMovementStrategy, //placeholder
+        movementStrategy: queenMovementStrategy,
       },
       {
         type: PieceType.KING,
@@ -125,8 +131,8 @@ export const useBoardManagement = () => {
     ];
 
     [PlayerColor.WHITE, PlayerColor.BLACK].forEach((color) => {
-      const rowOffset = color === PlayerColor.WHITE ? 0 : 7;
-      const pawnRow = color === PlayerColor.WHITE ? 1 : 6;
+      const rowOffset = color === PlayerColor.WHITE ? 7 : 0;
+      const pawnRow = color === PlayerColor.WHITE ? 6 : 1;
 
       setup.forEach(({ type, positions, movementStrategy }) => {
         positions.forEach(({ row, col }) => {
@@ -144,7 +150,7 @@ export const useBoardManagement = () => {
             type,
             color,
             square,
-            movementStrategy, // placeholder
+            movementStrategy,
             true,
             hasMoved
           );

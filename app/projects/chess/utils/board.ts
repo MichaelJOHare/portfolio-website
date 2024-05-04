@@ -40,7 +40,7 @@ export const isAttackedByOpponent = (
         piece &&
         piece.player !== player &&
         piece
-          .movementStrategy(board, piece, [])
+          .movementStrategy(board, piece)
           .some((m) => m.to.row === row && m.to.col === col)
       );
     })

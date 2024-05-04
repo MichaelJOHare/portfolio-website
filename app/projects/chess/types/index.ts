@@ -7,8 +7,7 @@ export type Square = {
 };
 
 export type SquareProps = {
-  row: number;
-  col: number;
+  square: Square;
   children: ReactNode;
 };
 
@@ -89,5 +88,5 @@ export interface CastlingMove extends Move {
 }
 
 export interface MovementStrategy {
-  (board: Square[][], piece: Piece, moveHistory: Move[]): Move[];
+  (board: Square[][], piece: Piece): Move[];
 }

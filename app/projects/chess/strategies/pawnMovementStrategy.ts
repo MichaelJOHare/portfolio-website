@@ -76,20 +76,19 @@ export const pawnMovementStrategy: MovementStrategy = (board, piece) => {
       const newCol = col + colOffset;
       if (newRow >= 0 && newRow <= 7 && newCol >= 0 && newCol <= 7) {
         const targetSquare = createSquare(newRow, newCol);
-        const capturedPiece = getPieceAt(board, newRow, newCol);
-        if (
-          !isEmpty(board, newRow, newCol) &&
-          capturedPiece?.player.color !== piece.color
-        ) {
-          legalMoves.push(
-            createStandardMove(
-              piece,
-              createSquare(row, col),
-              targetSquare,
-              capturedPiece
-            )
-          );
-        }
+        const targetPiece = getPieceAt(board, newRow, newCol);
+        const capturedPiece =
+          targetPiece && targetPiece.color !== piece.color
+            ? targetPiece
+            : undefined;
+        legalMoves.push(
+          createStandardMove(
+            piece,
+            createSquare(row, col),
+            targetSquare,
+            capturedPiece
+          )
+        );
       }
     });
   };

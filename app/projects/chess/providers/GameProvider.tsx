@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { BoardContext } from "../context/BoardStateContext";
 import { useBoardManagement } from "../hooks/useBoardManagement";
 import { GameContext } from "../context/GameStateContext";
@@ -18,16 +18,16 @@ export default function GameProvider({ children }: Props) {
   );
   const [isBoardInitialized, setIsBoardInitialized] = useState(false);
 
-  const handleInitializeBoard = () => {
+  const handleInitializeBoard = useCallback(() => {
     if (!isBoardInitialized) {
       boardManagement.initializeBoard();
       setIsBoardInitialized(true);
     }
-  };
+  }, [boardManagement, isBoardInitialized]);
 
   useEffect(() => {
     handleInitializeBoard();
-  }, [isBoardInitialized]);
+  }, [isBoardInitialized, handleInitializeBoard]);
 
   return (
     <GameContext.Provider value={{ ...gameManagement }}>

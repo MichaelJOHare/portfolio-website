@@ -8,6 +8,9 @@ import {
   MovementStrategy,
 } from "../types";
 
+import { isSquare } from "./square";
+import { isPlayer, isPlayerColor } from "./player";
+
 export const createPiece = (
   player: Player,
   type: PieceType,
@@ -33,3 +36,35 @@ export const copyPiece = (piece: Piece): Piece => {
     currentSquare: { ...piece.currentSquare },
   };
 };
+
+export function isPiece(token: unknown): token is Piece {
+  if (typeof token !== "object" || token === null) {
+    return false;
+  }
+
+  const piece = token as Piece;
+
+  return (
+    typeof piece.id === "string" &&
+    isPlayer(piece.player) &&
+    isPieceType(piece.type) &&
+    isPlayerColor(piece.color) &&
+    isSquare(piece.currentSquare) &&
+    typeof piece.movementStrategy === "function" &&
+    typeof piece.isAlive === "boolean" &&
+    (typeof piece.hasMoved === "undefined" ||
+      typeof piece.hasMoved === "boolean")
+  );
+}
+
+export function isPieceType(token: unknown): token is PieceType {
+  return (
+    typeof token === "string" &&
+    (token === PieceType.PAWN ||
+      token === PieceType.ROOK ||
+      token === PieceType.KNIGHT ||
+      token === PieceType.BISHOP ||
+      token === PieceType.QUEEN ||
+      token === PieceType.KING)
+  );
+}

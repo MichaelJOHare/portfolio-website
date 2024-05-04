@@ -29,7 +29,11 @@ export const kingMovementStrategy: MovementStrategy = (board, piece) => {
 
     if (newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8) {
       const targetSquare = createSquare(newRow, newCol);
-      const capturedPiece = getPieceAt(board, newRow, newCol);
+      const targetPiece = getPieceAt(board, newRow, newCol);
+      const capturedPiece =
+        targetPiece && targetPiece.color !== piece.color
+          ? targetPiece
+          : undefined;
       legalMoves.push(
         createStandardMove(
           piece,

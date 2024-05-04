@@ -25,7 +25,7 @@ export const useGameManagement = (
     setCurrentPlayer((prevPlayer) =>
       prevPlayer.color === PlayerColor.WHITE ? player2 : player1
     );
-  }, []);
+  }, [player1, player2]);
 
   const executeMove = useCallback(
     (move: Move) => {
