@@ -33,7 +33,6 @@ export const createPiece = (
 export const copyPiece = (piece: Piece): Piece => {
   return {
     ...piece,
-    currentSquare: { ...piece.currentSquare },
   };
 };
 

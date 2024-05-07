@@ -23,29 +23,6 @@ export const kingMovementStrategy: MovementStrategy = (board, piece) => {
     [-1, -1],
   ];
 
-  directions.forEach(([dRow, dCol]) => {
-    let newRow = row + dRow;
-    let newCol = col + dCol;
-
-    if (newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8) {
-      const targetSquare = createSquare(newRow, newCol);
-      const targetPiece = getPieceAt(board, newRow, newCol);
-      const capturedPiece =
-        targetPiece && targetPiece.color !== piece.color
-          ? targetPiece
-          : undefined;
-      legalMoves.push(
-        createStandardMove(
-          piece,
-          piece.currentSquare,
-          targetSquare,
-          capturedPiece
-        )
-      );
-    }
-    addCastlingMoves(board, piece, legalMoves);
-  });
-
   const canCastleKingSide = (
     board: Square[][],
     king: Piece,
@@ -160,5 +137,29 @@ export const kingMovementStrategy: MovementStrategy = (board, piece) => {
       );
     }
   };
+
+  directions.forEach(([dRow, dCol]) => {
+    let newRow = row + dRow;
+    let newCol = col + dCol;
+
+    if (newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8) {
+      const targetSquare = createSquare(newRow, newCol);
+      const targetPiece = getPieceAt(board, newRow, newCol);
+      const capturedPiece =
+        targetPiece && targetPiece.color !== piece.color
+          ? targetPiece
+          : undefined;
+      legalMoves.push(
+        createStandardMove(
+          piece,
+          piece.currentSquare,
+          targetSquare,
+          capturedPiece
+        )
+      );
+    }
+    addCastlingMoves(board, piece, legalMoves);
+  });
+
   return legalMoves;
 };

@@ -65,11 +65,20 @@ export const isEmptyAndNotAttacked = (
   return true;
 };
 
-export const copyBoard = (board: Square[][]): Square[][] => {
-  return board.map((row) =>
+export const copyBoard = (
+  board: Square[][],
+  piecesByPlayer: Map<Player, Piece[]>
+) => {
+  const copiedBoard = board.map((row) =>
     row.map((square) => ({
       ...square,
       piece: square.piece ? copyPiece(square.piece) : undefined,
     }))
   );
+  const copiedPiecesByPlayer = new Map();
+  piecesByPlayer.forEach((pieces, player) => {
+    const copiedPieces = pieces.map((piece) => copyPiece(piece));
+    copiedPiecesByPlayer.set(player, copiedPieces);
+  });
+  return { copiedBoard, copiedPiecesByPlayer };
 };

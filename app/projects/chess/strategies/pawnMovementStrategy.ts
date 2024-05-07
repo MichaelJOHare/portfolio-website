@@ -24,8 +24,8 @@ export const pawnMovementStrategy: MovementStrategy = (board, piece) => {
   ) => {
     const newRow = row + direction;
     if (
-      newRow > backRank &&
-      newRow < backRank + direction &&
+      ((direction === -1 && newRow > backRank) ||
+        (direction === 1 && newRow < backRank)) &&
       isEmpty(board, newRow, col)
     ) {
       legalMoves.push(
@@ -81,14 +81,15 @@ export const pawnMovementStrategy: MovementStrategy = (board, piece) => {
           targetPiece && targetPiece.color !== piece.color
             ? targetPiece
             : undefined;
-        legalMoves.push(
-          createStandardMove(
-            piece,
-            createSquare(row, col),
-            targetSquare,
-            capturedPiece
-          )
-        );
+        capturedPiece &&
+          legalMoves.push(
+            createStandardMove(
+              piece,
+              createSquare(row, col),
+              targetSquare,
+              capturedPiece
+            )
+          );
       }
     });
   };
@@ -97,6 +98,8 @@ export const pawnMovementStrategy: MovementStrategy = (board, piece) => {
   addDoubleMove(row, col, direction, startingRow, piece, board, legalMoves);
   addCaptureMoves(row, col, direction, piece, board, legalMoves);
 
+  let yut = 1;
+  console.trace(yut + 1);
   return legalMoves;
 };
 /*  vvv NEED TO REWRITE STILL vvv

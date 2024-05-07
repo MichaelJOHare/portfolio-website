@@ -46,14 +46,11 @@ export enum PieceType {
   KING = "king",
 }
 
-export type BoardStateContext = {
+export type GameStateContext = {
   board: Square[][];
   player1: Player;
   player2: Player;
   piecesByPlayer: Map<Player, Piece[]>;
-};
-
-export type GameStateContext = {
   currentPlayer: Player;
   capturedPieces: Piece[];
   moveHistory: Move[];
@@ -64,7 +61,12 @@ export type GameStateContext = {
   executeMove: (move: Move) => void;
   undoLastMove: () => void;
   switchPlayer: () => void;
-  isKingInCheck: (player: Player) => boolean;
+  initializeBoard: () => void;
+  wouldResultInCheck: (
+    piece: Piece,
+    move: Move,
+    piecesByPlayer: Map<Player, Piece[]>
+  ) => boolean;
 };
 
 export type MoveType = "Standard" | "Castling" | "EnPassant" | "Promotion";

@@ -1,10 +1,10 @@
 import { useContext } from "react";
-import { BoardContext } from "../context/BoardStateContext";
+import { GameContext } from "../context/GameStateContext";
 
 export const useChessGame = () => {
-  const context = useContext(BoardContext);
+  const context = useContext(GameContext);
   if (context === undefined) {
-    throw new Error("useChessGame must be used within a ChessGameProvider");
+    throw new Error("useChessGame must be used within a GameProvider");
   }
   return context;
 };

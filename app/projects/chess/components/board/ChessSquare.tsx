@@ -1,14 +1,11 @@
 import { useRef, useState, useEffect } from "react";
-import { SquareProps } from "../../types";
+import { Square, SquareProps } from "../../types";
 import { dropTargetForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
-import { canMove } from "./Board";
-import { isSquare } from "../../utils";
-import { useChessGame } from "../../hooks/useChessGame";
+import { isSquare, CanMove, HandleMove } from "../../utils";
 
 type HoveredState = "idle" | "validMove" | "invalidMove";
 
 export const ChessSquare = ({ square, children }: SquareProps) => {
-  const { board } = useChessGame();
   const ref = useRef(null);
   const [state, setState] = useState<HoveredState>("idle");
 
@@ -18,20 +15,35 @@ export const ChessSquare = ({ square, children }: SquareProps) => {
 
     return dropTargetForElements({
       element: el,
+      getData: () => ({ square }),
       onDragEnter: ({ source }) => {
         if (!isSquare(source.data.square)) {
-          return;
+          return false;
         }
-        if (canMove(board, source.data.square, square)) {
+        const movingPiece = source.data.square.piece;
+        if (movingPiece && CanMove(movingPiece, square)) {
           setState("validMove");
         } else {
           setState("invalidMove");
         }
       },
       onDragLeave: () => setState("idle"),
-      onDrop: () => setState("idle"),
+      canDrop: ({ source }) => {
+        if (!isSquare(source.data.square)) {
+          return false;
+        }
+        return !isSameSquare(source.data.square, square);
+      },
+      onDrop: ({ source }) => {
+        if (!isSquare(source.data.square)) {
+          return false;
+        }
+        const movingPiece = source.data.square.piece;
+        movingPiece && HandleMove(movingPiece, square);
+        setState("idle");
+      },
     });
-  }, []);
+  }, [square]);
 
   const isDark = (square.row + square.col) % 2 === 0;
 
@@ -55,4 +67,11 @@ function getColor(state: HoveredState, isDark: boolean): string {
     return "bg-red-300";
   }
   return isDark ? "bg-orange-200" : "bg-yellow-900";
+}
+
+function isSameSquare(sourceSquare: Square, targetSquare: Square) {
+  return (
+    sourceSquare.row === targetSquare.row &&
+    sourceSquare.col === targetSquare.col
+  );
 }

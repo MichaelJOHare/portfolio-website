@@ -14,13 +14,10 @@ export const bishopMovementStrategy: MovementStrategy = (board, piece) => {
   ];
 
   directions.forEach(([dRow, dCol]) => {
-    let newRow = row;
-    let newCol = col;
+    let newRow = row + dRow;
+    let newCol = col + dCol;
 
-    while (newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8) {
-      newRow += dRow;
-      newCol += dCol;
-
+    while (newRow >= 0 && newRow <= 7 && newCol >= 0 && newCol <= 7) {
       const targetSquare = createSquare(newRow, newCol);
       const targetPiece = getPieceAt(board, newRow, newCol);
       const capturedPiece =
@@ -35,7 +32,8 @@ export const bishopMovementStrategy: MovementStrategy = (board, piece) => {
           capturedPiece
         )
       );
-      break;
+      newRow += dRow;
+      newCol += dCol;
     }
   });
   return legalMoves;
