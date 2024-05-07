@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from "react";
-import { useChessGame } from "../../hooks/useChessGame";
-import { Square, SquareProps, Piece } from "../../types";
+import { useGameContext } from "../../hooks/useGameContext";
+import { Square, SquareProps, Piece, Move } from "../../types";
 import { dropTargetForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import { isSquare, getPieceAt, createStandardMove } from "../../utils";
 
@@ -14,7 +14,8 @@ export const ChessSquare = ({ square, children }: SquareProps) => {
     executeMove,
     wouldResultInCheck,
     switchPlayer,
-  } = useChessGame();
+    addMoveHistory,
+  } = useGameContext();
   const ref = useRef(null);
   const [state, setState] = useState<HoveredState>("idle");
 
@@ -23,6 +24,8 @@ export const ChessSquare = ({ square, children }: SquareProps) => {
       return false;
     }
 
+    // can optimize calling this only on drag start (maybe calll after executemove, for next player,
+    //   to also check for checkmate and use entire list of legal moves)
     const legalMoves = movingPiece.movementStrategy(board, movingPiece);
 
     return legalMoves.some((move) => {
@@ -32,7 +35,7 @@ export const ChessSquare = ({ square, children }: SquareProps) => {
     });
   };
 
-  const HandleMove = (movingPiece: Piece, targetSquare: Square) => {
+  const handleMove = (movingPiece: Piece, targetSquare: Square) => {
     if (canMove(movingPiece, targetSquare)) {
       const capturedPiece = getPieceAt(
         board,
@@ -47,6 +50,7 @@ export const ChessSquare = ({ square, children }: SquareProps) => {
       );
       if (!wouldResultInCheck(movingPiece, tempMove, piecesByPlayer)) {
         executeMove(tempMove);
+        addMoveHistory(tempMove);
         switchPlayer();
       }
     }
@@ -82,11 +86,11 @@ export const ChessSquare = ({ square, children }: SquareProps) => {
           return false;
         }
         const movingPiece = source.data.square.piece;
-        movingPiece && HandleMove(movingPiece, square);
+        movingPiece && handleMove(movingPiece, square);
         setState("idle");
       },
     });
-  }, [square]);
+  }, [square, canMove, handleMove]);
 
   const isDark = (square.row + square.col) % 2 === 0;
 

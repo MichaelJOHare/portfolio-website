@@ -33,6 +33,7 @@ export const isAttackedByOpponent = (
   col: number,
   player: Player
 ): boolean => {
+  console.log(board);
   return board.some((r) =>
     r.some((s) => {
       const piece = s.piece;

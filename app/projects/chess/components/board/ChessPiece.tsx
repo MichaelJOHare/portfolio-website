@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import { PieceType, PlayerColor, Square } from "../../types";
 import { draggable } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
-import { useChessGame } from "../../hooks/useChessGame";
+import { useGameContext } from "../../hooks/useGameContext";
 
 export const ChessPiece = ({
   type,
@@ -14,7 +14,7 @@ export const ChessPiece = ({
 }) => {
   const ref = useRef(null);
   const [dragging, setDragging] = useState<boolean>(false);
-  const { currentPlayer } = useChessGame();
+  const { currentPlayer } = useGameContext();
 
   useEffect(() => {
     const el = ref.current;

@@ -9,17 +9,6 @@ export const creatMoveHistory = (): MoveHistory => ({
   fullMoveNumber: 1,
 });
 
-export const makeMove = (move: Move, moveHistory: MoveHistory) => {
-  executeMove(move);
-  if (move.piece.type === PieceType.PAWN || move.isCapture) {
-    moveHistory.halfMoveClock = 0;
-  } else {
-    moveHistory.halfMoveClock++;
-  }
-  if (move.piece.color === PlayerColor.BLACK) {
-    moveHistory.fullMoveNumber++;
-  }
-};
 
 export const getEnPassantTarget = (moveHistory: MoveHistory) => {
   const move =

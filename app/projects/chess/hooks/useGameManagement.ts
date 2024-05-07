@@ -47,6 +47,10 @@ export const useGameManagement = (): GameStateContext => {
     setBoard(defaultBoard());
   }, []);
 
+  const addMoveHistory = useCallback((move: Move) => {
+    setMoveHistory((prev) => [...prev, move]);
+  }, []);
+
   const addPiece = useCallback((piece: Piece) => {
     setBoard((currentBoard) => {
       const updatedBoard = currentBoard.map((row, rowIndex) =>
@@ -65,6 +69,7 @@ export const useGameManagement = (): GameStateContext => {
     });
 
     setPiecesByPlayer((currentPiecesByPlayer) => {
+      // need to fix this, causing issues with executeMove on copiedBoard (not the same state for setPiecesByPlayer)
       const updatedPiecesByPlayer = new Map(currentPiecesByPlayer);
       const playerPieces = updatedPiecesByPlayer.get(piece.player) || [];
       updatedPiecesByPlayer.set(piece.player, [...playerPieces, piece]);
@@ -75,6 +80,7 @@ export const useGameManagement = (): GameStateContext => {
   const removePiece = useCallback(
     (pieceToRemove: Piece) => {
       setPiecesByPlayer((currentPiecesByPlayer) => {
+        // need to fix this, causing issues with executeMove on copiedBoard (not the same state for setPiecesByPlayer)
         const updatedPiecesByPlayer = new Map(currentPiecesByPlayer);
         const playerPieces =
           updatedPiecesByPlayer.get(pieceToRemove.player) || [];
@@ -196,12 +202,12 @@ export const useGameManagement = (): GameStateContext => {
             hasMoved: true,
           };
           removePiece(move.piece);
-          addPiece(updatedPiece);
-          setMoveHistory((prev) => [...prev, move]);
-          if (move.capturedPiece) {
-            //setCapturedPieces((prev) => [...prev, move.capturedPiece]);
-            removePiece(move.capturedPiece);
+          const capturedPiece = move.capturedPiece;
+          if (capturedPiece) {
+            setCapturedPieces((prev) => [...prev, capturedPiece]);
+            removePiece(capturedPiece);
           }
+          addPiece(updatedPiece);
           break;
         case "Castling":
           const castlingMove = move as CastlingMove;
@@ -221,13 +227,27 @@ export const useGameManagement = (): GameStateContext => {
           addPiece(updatedRook);
           break;
       }
+      if (move.piece.type === PieceType.PAWN || move.isCapture) {
+        setHalfMoveClock(0);
+      } else {
+        const newHalfMoveClock = 1 + halfMoveClock;
+        setHalfMoveClock(newHalfMoveClock);
+      }
+      if (move.piece.color === PlayerColor.BLACK) {
+        const newFullMoveNumber = 1 + fullMoveNumber;
+        setFullMoveNumber(newFullMoveNumber);
+      }
     },
-    [removePiece, addPiece, currentPlayer.color]
+    [removePiece, addPiece, currentPlayer.color, fullMoveNumber, halfMoveClock]
   );
 
   const isKingInCheck = useCallback(
-    (player: Player, copiedPiecesByPlayer: Map<Player, Piece[]>) => {
-      const playersPieces = copiedPiecesByPlayer.get(player);
+    (
+      copiedBoard: Square[][],
+      copiedPlayer: Player,
+      copiedPiecesByPlayer: Map<Player, Piece[]>
+    ) => {
+      const playersPieces = copiedPiecesByPlayer.get(copiedPlayer);
       let playersKing: Piece | undefined;
       if (playersPieces) {
         playersKing = playersPieces.find((piece) => {
@@ -236,22 +256,16 @@ export const useGameManagement = (): GameStateContext => {
       }
       if (playersKing) {
         return isAttackedByOpponent(
-          board,
+          copiedBoard,
           playersKing.currentSquare.row,
           playersKing.currentSquare.col,
-          player
+          copiedPlayer
         );
       }
       return true;
     },
     [board]
   );
-
-  const switchPlayer = useCallback(() => {
-    setCurrentPlayer((prevPlayer) =>
-      prevPlayer.color === PlayerColor.WHITE ? player2 : player1
-    );
-  }, [player1, player2]);
 
   const wouldResultInCheck = useCallback(
     (piece: Piece, move: Move, piecesByPlayer: Map<Player, Piece[]>) => {
@@ -268,17 +282,27 @@ export const useGameManagement = (): GameStateContext => {
         executeMove(
           createStandardMove(
             copiedPiece,
-            move.to,
             move.from,
+            move.to,
             copiedCapturedPiece
           )
         );
-        return isKingInCheck(copiedPiece.player, copiedPiecesByPlayer);
+        return isKingInCheck(
+          copiedBoard,
+          copiedPiece.player,
+          copiedPiecesByPlayer
+        );
       }
-      return false;
+      return true;
     },
     [board, executeMove, isKingInCheck]
   );
+
+  const switchPlayer = useCallback(() => {
+    setCurrentPlayer((prevPlayer) =>
+      prevPlayer.color === PlayerColor.WHITE ? player2 : player1
+    );
+  }, [player1, player2]);
 
   const undoLastMove = useCallback(() => {
     // placeholder
@@ -300,8 +324,10 @@ export const useGameManagement = (): GameStateContext => {
     fullMoveNumber,
     executeMove,
     undoLastMove,
+    addMoveHistory,
     switchPlayer,
     initializeBoard,
     wouldResultInCheck,
+    clearBoard,
   };
 };

@@ -60,6 +60,7 @@ export type GameStateContext = {
   enPassantTarget?: Square;
   executeMove: (move: Move) => void;
   undoLastMove: () => void;
+  addMoveHistory: (move: Move) => void;
   switchPlayer: () => void;
   initializeBoard: () => void;
   wouldResultInCheck: (
@@ -67,6 +68,7 @@ export type GameStateContext = {
     move: Move,
     piecesByPlayer: Map<Player, Piece[]>
   ) => boolean;
+  clearBoard: () => void;
 };
 
 export type MoveType = "Standard" | "Castling" | "EnPassant" | "Promotion";

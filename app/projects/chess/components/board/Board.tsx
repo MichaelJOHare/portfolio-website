@@ -3,13 +3,13 @@
 import React, { useEffect } from "react";
 import { ChessSquare } from "./ChessSquare";
 import { ChessPiece } from "./ChessPiece";
-import { useChessGame } from "../../hooks/useChessGame";
+import { useGameContext } from "../../hooks/useGameContext";
 import { createSquare } from "../../utils";
 
 export default function Board() {
-  const { board } = useChessGame();
+  const { board } = useGameContext();
   if (!board[0][0].piece) {
-    return;
+    return null;
   }
 
   return (

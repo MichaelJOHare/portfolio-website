@@ -98,8 +98,6 @@ export const pawnMovementStrategy: MovementStrategy = (board, piece) => {
   addDoubleMove(row, col, direction, startingRow, piece, board, legalMoves);
   addCaptureMoves(row, col, direction, piece, board, legalMoves);
 
-  let yut = 1;
-  console.trace(yut + 1);
   return legalMoves;
 };
 /*  vvv NEED TO REWRITE STILL vvv
