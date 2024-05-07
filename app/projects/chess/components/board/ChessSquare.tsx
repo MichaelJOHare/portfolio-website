@@ -1,13 +1,56 @@
 import { useRef, useState, useEffect } from "react";
-import { Square, SquareProps } from "../../types";
+import { useChessGame } from "../../hooks/useChessGame";
+import { Square, SquareProps, Piece } from "../../types";
 import { dropTargetForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
-import { isSquare, CanMove, HandleMove } from "../../utils";
+import { isSquare, getPieceAt, createStandardMove } from "../../utils";
 
 type HoveredState = "idle" | "validMove" | "invalidMove";
 
 export const ChessSquare = ({ square, children }: SquareProps) => {
+  const {
+    board,
+    currentPlayer,
+    piecesByPlayer,
+    executeMove,
+    wouldResultInCheck,
+    switchPlayer,
+  } = useChessGame();
   const ref = useRef(null);
   const [state, setState] = useState<HoveredState>("idle");
+
+  const canMove = (movingPiece: Piece, targetSquare: Square) => {
+    if (movingPiece && movingPiece.color !== currentPlayer.color) {
+      return false;
+    }
+
+    const legalMoves = movingPiece.movementStrategy(board, movingPiece);
+
+    return legalMoves.some((move) => {
+      return (
+        move.to.row === targetSquare.row && move.to.col === targetSquare.col
+      );
+    });
+  };
+
+  const HandleMove = (movingPiece: Piece, targetSquare: Square) => {
+    if (canMove(movingPiece, targetSquare)) {
+      const capturedPiece = getPieceAt(
+        board,
+        targetSquare.row,
+        targetSquare.col
+      );
+      const tempMove = createStandardMove(
+        movingPiece,
+        movingPiece.currentSquare,
+        targetSquare,
+        capturedPiece
+      );
+      if (!wouldResultInCheck(movingPiece, tempMove, piecesByPlayer)) {
+        executeMove(tempMove);
+        switchPlayer();
+      }
+    }
+  };
 
   useEffect(() => {
     const el = ref.current;
@@ -21,7 +64,7 @@ export const ChessSquare = ({ square, children }: SquareProps) => {
           return false;
         }
         const movingPiece = source.data.square.piece;
-        if (movingPiece && CanMove(movingPiece, square)) {
+        if (movingPiece && canMove(movingPiece, square)) {
           setState("validMove");
         } else {
           setState("invalidMove");
