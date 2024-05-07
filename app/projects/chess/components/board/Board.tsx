@@ -1,6 +1,5 @@
 "use client";
 
-import React, { useEffect } from "react";
 import { ChessSquare } from "./ChessSquare";
 import { ChessPiece } from "./ChessPiece";
 import { useGameContext } from "../../hooks/useGameContext";
@@ -20,7 +19,7 @@ export default function Board() {
             key={`${rowIndex}-${colIndex}`}
             square={createSquare(rowIndex, colIndex)}
           >
-            {square.piece && (
+            {square.piece && square.piece.isAlive && (
               <ChessPiece
                 type={square.piece.type}
                 color={square.piece.color}

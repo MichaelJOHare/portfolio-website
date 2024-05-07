@@ -19,7 +19,14 @@ export const rookMovementStrategy: MovementStrategy = (board, piece) => {
 
     while (newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8) {
       const targetSquare = createSquare(newRow, newCol);
-      const capturedPiece = getPieceAt(board, newRow, newCol);
+      const targetPiece = getPieceAt(board, newRow, newCol);
+      const capturedPiece =
+        targetPiece && targetPiece.color !== piece.color
+          ? targetPiece
+          : undefined;
+      if (targetPiece && targetPiece.color === piece.color) {
+        break;
+      }
       legalMoves.push(
         createStandardMove(
           piece,
@@ -28,8 +35,9 @@ export const rookMovementStrategy: MovementStrategy = (board, piece) => {
           capturedPiece
         )
       );
-
-      if (board[newRow][newCol].piece) break;
+      if (capturedPiece) {
+        break;
+      }
 
       newRow += dRow;
       newCol += dCol;

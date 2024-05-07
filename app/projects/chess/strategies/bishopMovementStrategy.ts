@@ -24,6 +24,9 @@ export const bishopMovementStrategy: MovementStrategy = (board, piece) => {
         targetPiece && targetPiece.color !== piece.color
           ? targetPiece
           : undefined;
+      if (targetPiece && targetPiece.color === piece.color) {
+        break;
+      }
       legalMoves.push(
         createStandardMove(
           piece,
@@ -32,6 +35,10 @@ export const bishopMovementStrategy: MovementStrategy = (board, piece) => {
           capturedPiece
         )
       );
+      if (capturedPiece) {
+        break;
+      }
+
       newRow += dRow;
       newCol += dCol;
     }

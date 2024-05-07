@@ -1,60 +1,15 @@
 import { useRef, useState, useEffect } from "react";
 import { useGameContext } from "../../hooks/useGameContext";
-import { Square, SquareProps, Piece, Move } from "../../types";
+import { Square, SquareProps } from "../../types";
 import { dropTargetForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
-import { isSquare, getPieceAt, createStandardMove } from "../../utils";
+import { isSquare } from "../../utils";
 
 type HoveredState = "idle" | "validMove" | "invalidMove";
 
 export const ChessSquare = ({ square, children }: SquareProps) => {
-  const {
-    board,
-    currentPlayer,
-    piecesByPlayer,
-    executeMove,
-    wouldResultInCheck,
-    switchPlayer,
-    addMoveHistory,
-  } = useGameContext();
+  const { canMove, handleMove } = useGameContext();
   const ref = useRef(null);
   const [state, setState] = useState<HoveredState>("idle");
-
-  const canMove = (movingPiece: Piece, targetSquare: Square) => {
-    if (movingPiece && movingPiece.color !== currentPlayer.color) {
-      return false;
-    }
-
-    // can optimize calling this only on drag start (maybe calll after executemove, for next player,
-    //   to also check for checkmate and use entire list of legal moves)
-    const legalMoves = movingPiece.movementStrategy(board, movingPiece);
-
-    return legalMoves.some((move) => {
-      return (
-        move.to.row === targetSquare.row && move.to.col === targetSquare.col
-      );
-    });
-  };
-
-  const handleMove = (movingPiece: Piece, targetSquare: Square) => {
-    if (canMove(movingPiece, targetSquare)) {
-      const capturedPiece = getPieceAt(
-        board,
-        targetSquare.row,
-        targetSquare.col
-      );
-      const tempMove = createStandardMove(
-        movingPiece,
-        movingPiece.currentSquare,
-        targetSquare,
-        capturedPiece
-      );
-      if (!wouldResultInCheck(movingPiece, tempMove, piecesByPlayer)) {
-        executeMove(tempMove);
-        addMoveHistory(tempMove);
-        switchPlayer();
-      }
-    }
-  };
 
   useEffect(() => {
     const el = ref.current;

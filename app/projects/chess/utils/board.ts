@@ -33,13 +33,12 @@ export const isAttackedByOpponent = (
   col: number,
   player: Player
 ): boolean => {
-  console.log(board);
   return board.some((r) =>
     r.some((s) => {
       const piece = s.piece;
       return (
         piece &&
-        piece.player !== player &&
+        piece.player.color !== player.color &&
         piece
           .movementStrategy(board, piece)
           .some((m) => m.to.row === row && m.to.col === col)
@@ -66,20 +65,23 @@ export const isEmptyAndNotAttacked = (
   return true;
 };
 
-export const copyBoard = (
-  board: Square[][],
-  piecesByPlayer: Map<Player, Piece[]>
-) => {
+export const copyBoard = (board: Square[][]) => {
   const copiedBoard = board.map((row) =>
     row.map((square) => ({
       ...square,
       piece: square.piece ? copyPiece(square.piece) : undefined,
     }))
   );
-  const copiedPiecesByPlayer = new Map();
-  piecesByPlayer.forEach((pieces, player) => {
-    const copiedPieces = pieces.map((piece) => copyPiece(piece));
-    copiedPiecesByPlayer.set(player, copiedPieces);
-  });
+  const copiedPiecesByPlayer = [...board.flat()].reduce((acc, square) => {
+    const piece = square.piece;
+    if (piece) {
+      const player = piece.player;
+      if (!acc.has(player)) {
+        acc.set(player, []);
+      }
+      acc.get(player)?.push(copyPiece(piece));
+    }
+    return acc;
+  }, new Map<Player, Piece[]>());
   return { copiedBoard, copiedPiecesByPlayer };
 };

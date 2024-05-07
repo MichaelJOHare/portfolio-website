@@ -1,4 +1,4 @@
-import { Move, CastlingMove, Square, Piece } from "../types";
+import { Move, CastlingMove, Square, Piece, MoveType } from "../types";
 
 // createMove interface? need to allow for creating a move -> depending on type it creates the correct move type
 
@@ -10,7 +10,7 @@ export const createStandardMove = (
   isPromotion?: boolean,
   isCapture?: boolean
 ): Move => ({
-  type: "Standard",
+  type: MoveType.STNDRD,
   from,
   to,
   capturedPiece,
@@ -27,7 +27,7 @@ export const createCastlingMove = (
   rookFrom: Square,
   rookTo: Square
 ): CastlingMove => ({
-  type: "Castling",
+  type: MoveType.CASTLE,
   from: kingFrom,
   to: kingTo,
   capturedPiece: undefined,
