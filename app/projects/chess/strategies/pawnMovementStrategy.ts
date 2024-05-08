@@ -1,12 +1,25 @@
-import { Move, MovementStrategy, Piece, Square, PlayerColor } from "../types";
 import {
+  Move,
+  MovementStrategy,
+  Piece,
+  Square,
+  PlayerColor,
+  PieceType,
+} from "../types";
+import {
+  createEnPassantMove,
+  createPromotionMove,
   createSquare,
   createStandardMove,
   getPieceAt,
   isEmpty,
 } from "../utils";
 
-export const pawnMovementStrategy: MovementStrategy = (board, piece) => {
+export const pawnMovementStrategy: MovementStrategy = (
+  board,
+  piece,
+  moveHistory
+) => {
   const legalMoves: Move[] = [];
   const { row, col } = piece.currentSquare;
   const direction = piece.color === PlayerColor.WHITE ? -1 : 1;
@@ -94,120 +107,101 @@ export const pawnMovementStrategy: MovementStrategy = (board, piece) => {
     });
   };
 
+  const addEnPassantMoves = (
+    row: number,
+    col: number,
+    piece: Piece,
+    board: Square[][],
+    moveHistory: Move[] | undefined,
+    legalMoves: Move[]
+  ) => {
+    if (!moveHistory) {
+      return;
+    }
+    const enPassantStartingRow = piece.color === PlayerColor.WHITE ? 1 : 6;
+    const enPassantEndRow = piece.color === PlayerColor.WHITE ? 3 : 4;
+    const direction = piece.color === PlayerColor.WHITE ? -1 : 1;
+    const lastMove = moveHistory[moveHistory.length - 1];
+
+    if (
+      lastMove &&
+      lastMove.piece.type === PieceType.PAWN &&
+      lastMove.from.row === enPassantStartingRow &&
+      lastMove.to.row === enPassantEndRow &&
+      row === enPassantEndRow &&
+      Math.abs(col - lastMove.to.col) === 1
+    ) {
+      const currentSquare: Square = { row, col };
+      const targetSquare: Square = {
+        row: row + direction,
+        col: lastMove.to.col,
+      };
+      const capturedPiece = board[lastMove.to.row][lastMove.to.col].piece;
+      if (capturedPiece) {
+        const tempMove = createEnPassantMove(
+          piece,
+          currentSquare,
+          targetSquare,
+          capturedPiece.currentSquare,
+          capturedPiece
+        );
+        legalMoves.push(tempMove);
+      }
+    }
+  };
+
+  const addPromotionMoves = (
+    row: number,
+    col: number,
+    piece: Piece,
+    board: Square[][],
+    legalMoves: Move[]
+  ) => {
+    const direction = piece.color === PlayerColor.WHITE ? -1 : 1;
+    const rowBeforePromotionRow = piece.color === PlayerColor.WHITE ? 1 : 6;
+    const forwardSquare: Square = { row: row + direction, col };
+
+    if (row === rowBeforePromotionRow) {
+      if (!board[forwardSquare.row][forwardSquare.col].piece) {
+        Object.values(PieceType).forEach((promotionType) => {
+          if (promotionType !== PieceType.PAWN) {
+            const promotionMove = createPromotionMove(
+              piece,
+              { row, col },
+              forwardSquare,
+              promotionType
+            );
+            legalMoves.push(promotionMove);
+          }
+        });
+      }
+
+      [-1, 1].forEach((colOffset) => {
+        const newCol = col + colOffset;
+        const piece = board[forwardSquare.row][newCol].piece;
+        if (newCol >= 0 && newCol < 8 && piece && piece.color !== piece.color) {
+          Object.values(PieceType).forEach((promotionType) => {
+            if (promotionType !== PieceType.PAWN) {
+              const promotionMove = createPromotionMove(
+                piece,
+                { row, col },
+                { row: forwardSquare.row, col: newCol },
+                promotionType,
+                board[forwardSquare.row][newCol].piece
+              );
+              legalMoves.push(promotionMove);
+            }
+          });
+        }
+      });
+    }
+  };
+
   addNormalMoves(row, col, direction, backRank, piece, board, legalMoves);
   addDoubleMove(row, col, direction, startingRow, piece, board, legalMoves);
   addCaptureMoves(row, col, direction, piece, board, legalMoves);
+  addEnPassantMoves(row, col, piece, board, moveHistory, legalMoves);
+  addPromotionMoves(row, col, piece, board, legalMoves);
 
   return legalMoves;
 };
-/*  vvv NEED TO REWRITE STILL vvv
-
-  addEnPassantMoves(row, col, piece, board, moveHistory, legalMoves) {
-    const enPassantStartingRow = piece.getPlayer().isWhite() ? 1 : 6;
-    const enPassantEndRow = piece.getPlayer().isWhite() ? 3 : 4;
-    const direction = piece.getPlayer().isWhite() ? -1 : 1;
-    const lastMove = moveHistory.getLastMove();
-
-    if (
-      lastMove !== null &&
-      lastMove.getPiece().getType() === PieceType.PAWN &&
-      lastMove.getStartSquare().getRow() === enPassantStartingRow &&
-      lastMove.getEndSquare().getRow() === enPassantEndRow &&
-      row === enPassantEndRow &&
-      Math.abs(col - lastMove.getEndSquare().getCol()) === 1
-    ) {
-      const currentSquare = new Square(row, col);
-      const targetSquare = new Square(
-        row + direction,
-        lastMove.getEndSquare().getCol()
-      );
-      const capturedPiece = lastMove.getPiece();
-      const originalSquareBeforeCapture = lastMove
-        .getPiece()
-        .getCurrentSquare();
-      const tempMove = new EnPassantMove(
-        piece,
-        currentSquare,
-        targetSquare,
-        originalSquareBeforeCapture,
-        capturedPiece,
-        board
-      );
-      legalMoves.push(tempMove);
-    }
-  }
-
-  addPromotionMoves(row, col, piece, board, legalMoves) {
-    const direction = piece.getPlayer().isWhite() ? -1 : 1;
-    const rowBeforePromotionRow = piece.getPlayer().isWhite() ? 1 : 6;
-
-    // Captures with promotion
-    this.handlePromotionCapture(
-      row,
-      col,
-      direction,
-      1,
-      piece,
-      board,
-      legalMoves
-    );
-    this.handlePromotionCapture(
-      row,
-      col,
-      direction,
-      -1,
-      piece,
-      board,
-      legalMoves
-    );
-
-    // Normal move with promotion
-    if (row === rowBeforePromotionRow && board.isEmpty(row + direction, col)) {
-      ["QUEEN", "ROOK", "BISHOP", "KNIGHT"].forEach((promotionType) => {
-        const promotionMove = new PromotionMove(
-          piece,
-          new Square(row, col),
-          new Square(row + direction, col),
-          null,
-          PieceType[promotionType],
-          board
-        );
-        promotionMove.setPromotion(true);
-        legalMoves.push(promotionMove);
-      });
-    }
-  }
-
-  handlePromotionCapture(
-    row,
-    col,
-    direction,
-    colOffset,
-    piece,
-    board,
-    legalMoves
-  ) {
-    const newRow = row + direction;
-    const newCol = col + colOffset;
-    const rowBeforePromotionRow = piece.getPlayer().isWhite() ? 1 : 6;
-
-    if (
-      row === rowBeforePromotionRow &&
-      newCol >= 0 &&
-      newCol < 8 &&
-      board.isOccupiedByOpponent(newRow, newCol, piece.getPlayer())
-    ) {
-      ["QUEEN", "ROOK", "BISHOP", "KNIGHT"].forEach((promotionType) => {
-        const promotionMove = new PromotionMove(
-          piece,
-          new Square(row, col),
-          new Square(newRow, newCol),
-          board.getPieceAt(newRow, newCol),
-          PieceType[promotionType],
-          board
-        );
-        promotionMove.setPromotion(true);
-        legalMoves.push(promotionMove);
-      });
-    }
-  }*/

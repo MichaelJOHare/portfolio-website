@@ -62,6 +62,7 @@ export type GameStateContext = {
   board: Square[][];
   currentPlayer: Player;
   enPassantTarget?: Square;
+  moveHistory: Move[];
   initializeBoard: () => void;
   canMove: (piece: Piece, targetSquare: Square) => Move | null;
   handleMove: (piece: Piece, targetSquare: Square) => void;
@@ -92,6 +93,14 @@ export interface CastlingMove extends Move {
   rookTo: Square;
 }
 
+export interface EnPassantMove extends Move {
+  capturedPieceSquare: Square;
+}
+
+export interface PromotionMove extends Move {
+  promotionType: PieceType;
+}
+
 export interface MovementStrategy {
-  (board: Square[][], piece: Piece): Move[];
+  (board: Square[][], piece: Piece, moveHistory?: Move[]): Move[];
 }

@@ -181,10 +181,14 @@ export const useGameManagement = (): GameStateContext => {
 
       // can optimize calling this only on drag start (maybe call after executemove, for next player,
       //   to also check for checkmate and use entire list of legal moves)
-      const legalMoves = movingPiece.movementStrategy(
-        gameState.board,
-        movingPiece
-      );
+      const legalMoves =
+        movingPiece.type === PieceType.PAWN
+          ? movingPiece.movementStrategy(
+              gameState.board,
+              movingPiece,
+              gameState.moveHistory
+            )
+          : movingPiece.movementStrategy(gameState.board, movingPiece);
 
       const foundMove = legalMoves.find((move) => {
         return (
@@ -194,7 +198,7 @@ export const useGameManagement = (): GameStateContext => {
 
       return foundMove || null;
     },
-    [gameState.board, currentPlayer.color]
+    [gameState.board, currentPlayer.color, gameState.moveHistory]
   );
 
   const executeMove = useCallback(
@@ -345,8 +349,23 @@ export const useGameManagement = (): GameStateContext => {
         }
       }
     },
-    [gameState.board, canMove, wouldResultInCheck, finalizeMove]
+    [canMove, wouldResultInCheck, finalizeMove]
   );
+
+  const getEnPassantTarget = useCallback(() => {
+    const move =
+      gameState.moveHistory.length > 0
+        ? gameState.moveHistory[gameState.moveHistory.length - 1]
+        : null;
+    if (
+      move &&
+      move.piece.type === PieceType.PAWN &&
+      Math.abs(move.from.row - move.to.row) === 2
+    ) {
+      return createSquare((move.from.row + move.to.row) / 2, move.from.col);
+    }
+    return null;
+  }, [gameState.moveHistory]);
 
   const undoLastMove = useCallback(() => {
     setGameState((prevState) => ({
