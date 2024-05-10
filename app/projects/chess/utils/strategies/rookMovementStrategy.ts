@@ -1,23 +1,23 @@
-import { Move, MovementStrategy } from "../types";
-import { createSquare, createStandardMove, getPieceAt } from "../utils";
+import { MovementStrategy, Move } from "../../types";
+import { createStandardMove, getPieceAt, createSquare } from "..";
 
-export const bishopMovementStrategy: MovementStrategy = (board, piece) => {
+export const rookMovementStrategy: MovementStrategy = (board, piece) => {
   let legalMoves: Move[] = [];
   let row = piece.currentSquare.row;
   let col = piece.currentSquare.col;
 
   const directions = [
-    [1, 1],
-    [1, -1],
-    [-1, -1],
-    [-1, 1],
+    [1, 0],
+    [0, 1],
+    [-1, 0],
+    [0, -1],
   ];
 
   directions.forEach(([dRow, dCol]) => {
     let newRow = row + dRow;
     let newCol = col + dCol;
 
-    while (newRow >= 0 && newRow <= 7 && newCol >= 0 && newCol <= 7) {
+    while (newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8) {
       const targetSquare = createSquare(newRow, newCol);
       const targetPiece = getPieceAt(board, newRow, newCol);
       const capturedPiece =
@@ -43,5 +43,6 @@ export const bishopMovementStrategy: MovementStrategy = (board, piece) => {
       newCol += dCol;
     }
   });
+
   return legalMoves;
 };

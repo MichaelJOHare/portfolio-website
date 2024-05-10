@@ -1,11 +1,10 @@
-import { MovementStrategy, Piece, Square, Move, PieceType } from "../types";
+import { MovementStrategy, Piece, Square, Move } from "../../types";
 import {
   createSquare,
   createStandardMove,
   createCastlingMove,
   getPieceAt,
-  isEmptyAndNotAttacked,
-} from "../utils";
+} from "..";
 
 export const kingMovementStrategy: MovementStrategy = (board, piece) => {
   let legalMoves: Move[] = [];
@@ -23,67 +22,12 @@ export const kingMovementStrategy: MovementStrategy = (board, piece) => {
     [-1, -1],
   ];
 
-  const canCastleKingSide = (
-    board: Square[][],
-    king: Piece,
-    rookCol: number
-  ) => {
-    const kingSideRookCol = rookCol;
-    const pieceAtRookPos = getPieceAt(
-      board,
-      king.currentSquare.row,
-      kingSideRookCol
-    );
-    const rook =
-      pieceAtRookPos?.type === PieceType.ROOK ? pieceAtRookPos : undefined;
-
-    const kingHasMoved = king.hasMoved;
-    const rookHasMoved = rook?.hasMoved;
-
-    if (kingHasMoved || rookHasMoved) return false;
-
-    return isEmptyAndNotAttacked(
-      board,
-      king,
-      king.currentSquare.col + 1,
-      king.currentSquare.col + 2,
-      king.player
-    );
-  };
-
-  const canCastleQueenSide = (
-    board: Square[][],
-    king: Piece,
-    rookCol: number
-  ) => {
-    const queenSideRookCol = rookCol;
-    const pieceAtRookPos = getPieceAt(
-      board,
-      king.currentSquare.row,
-      queenSideRookCol
-    );
-    const rook =
-      pieceAtRookPos?.type === PieceType.ROOK ? pieceAtRookPos : undefined;
-
-    const kingHasMoved = king.hasMoved;
-    const rookHasMoved = rook?.hasMoved;
-
-    if (kingHasMoved || rookHasMoved) return false;
-
-    return isEmptyAndNotAttacked(
-      board,
-      king,
-      king.currentSquare.col - 2,
-      king.currentSquare.col - 1,
-      king.player
-    );
-  };
-
   const addCastlingMoves = (
     board: Square[][],
     king: Piece,
     legalMoves: Move[]
   ) => {
+    legalMoves = [];
     const rookPositions = {
       kingSideRookCol: 7,
       queenSideRookCol: 0,
@@ -99,10 +43,7 @@ export const kingMovementStrategy: MovementStrategy = (board, piece) => {
       rookPositions.queenSideRookCol
     );
 
-    if (
-      canCastleKingSide(board, king, rookPositions.kingSideRookCol) &&
-      kingSideRook
-    ) {
+    if (kingSideRook && !kingSideRook.hasMoved && !king.hasMoved) {
       legalMoves.push(
         createCastlingMove(
           king,
@@ -118,10 +59,7 @@ export const kingMovementStrategy: MovementStrategy = (board, piece) => {
       );
     }
 
-    if (
-      canCastleQueenSide(board, king, rookPositions.queenSideRookCol) &&
-      queenSideRook
-    ) {
+    if (queenSideRook && !queenSideRook.hasMoved && !king.hasMoved) {
       legalMoves.push(
         createCastlingMove(
           king,
@@ -149,14 +87,20 @@ export const kingMovementStrategy: MovementStrategy = (board, piece) => {
         targetPiece && targetPiece.color !== piece.color
           ? targetPiece
           : undefined;
-      legalMoves.push(
-        createStandardMove(
-          piece,
-          piece.currentSquare,
-          targetSquare,
-          capturedPiece
-        )
-      );
+      if (capturedPiece) {
+        legalMoves.push(
+          createStandardMove(
+            piece,
+            piece.currentSquare,
+            targetSquare,
+            capturedPiece
+          )
+        );
+      } else if (!targetPiece) {
+        legalMoves.push(
+          createStandardMove(piece, piece.currentSquare, targetSquare)
+        );
+      }
     }
     addCastlingMoves(board, piece, legalMoves);
   });

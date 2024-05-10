@@ -1,5 +1,5 @@
-import { MovementStrategy, Move } from "../types";
-import { createStandardMove, createSquare, getPieceAt } from "../utils";
+import { MovementStrategy, Move } from "../../types";
+import { createStandardMove, createSquare, getPieceAt } from "..";
 
 export const knightMovementStrategy: MovementStrategy = (board, piece) => {
   let legalMoves: Move[] = [];
@@ -27,14 +27,20 @@ export const knightMovementStrategy: MovementStrategy = (board, piece) => {
         targetPiece && targetPiece.color !== piece.color
           ? targetPiece
           : undefined;
-      legalMoves.push(
-        createStandardMove(
-          piece,
-          piece.currentSquare,
-          targetSquare,
-          capturedPiece
-        )
-      );
+      if (capturedPiece) {
+        legalMoves.push(
+          createStandardMove(
+            piece,
+            piece.currentSquare,
+            targetSquare,
+            capturedPiece
+          )
+        );
+      } else if (!targetPiece) {
+        legalMoves.push(
+          createStandardMove(piece, piece.currentSquare, targetSquare)
+        );
+      }
     }
   });
 

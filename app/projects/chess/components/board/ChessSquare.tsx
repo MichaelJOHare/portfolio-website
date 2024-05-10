@@ -7,9 +7,12 @@ import { isSquare } from "../../utils";
 type HoveredState = "idle" | "validMove" | "invalidMove";
 
 export const ChessSquare = ({ square, children }: SquareProps) => {
-  const { canMove, handleMove } = useGameContext();
+  const { playerCanMove } = useGameContext();
   const ref = useRef(null);
   const [state, setState] = useState<HoveredState>("idle");
+
+  const isColumn7 = square.col === 7;
+  const isRow7 = square.row === 7;
 
   useEffect(() => {
     const el = ref.current;
@@ -23,10 +26,11 @@ export const ChessSquare = ({ square, children }: SquareProps) => {
           return false;
         }
         const movingPiece = source.data.square.piece;
-        if (movingPiece && canMove(movingPiece, square)) {
+        if (
+          movingPiece &&
+          playerCanMove(movingPiece, square)?.piece.id === movingPiece.id
+        ) {
           setState("validMove");
-        } else {
-          setState("invalidMove");
         }
       },
       onDragLeave: () => setState("idle"),
@@ -36,28 +40,41 @@ export const ChessSquare = ({ square, children }: SquareProps) => {
         }
         return !isSameSquare(source.data.square, square);
       },
-      onDrop: ({ source }) => {
-        if (!isSquare(source.data.square)) {
-          return false;
-        }
-        const movingPiece = source.data.square.piece;
-        movingPiece && handleMove(movingPiece, square);
+      onDrop: () => {
         setState("idle");
       },
     });
-  }, [square, canMove, handleMove]);
+  }, [square, playerCanMove]);
 
   const isDark = (square.row + square.col) % 2 === 0;
 
   return (
     <div
       ref={ref}
-      className={`flex justify-center items-center w-full h-full aspect-square ${getColor(
+      className={`relative flex justify-center items-center w-full h-full aspect-square ${getColor(
         state,
         isDark
       )}`}
     >
       {children}
+      {isColumn7 && (
+        <div
+          className={`absolute top-0 right-0 pt-1 pr-1 text-xs ${
+            isDark ? "text-yellow-900" : "text-orange-200"
+          } select-none`}
+        >
+          {8 - square.row}
+        </div>
+      )}
+      {isRow7 && (
+        <div
+          className={`absolute bottom-0 left-0 pl-1 text-xs ${
+            isDark ? "text-yellow-900" : "text-orange-200"
+          } select-none`}
+        >
+          {String.fromCharCode(97 + square.col)}
+        </div>
+      )}
     </div>
   );
 };
@@ -65,8 +82,6 @@ export const ChessSquare = ({ square, children }: SquareProps) => {
 function getColor(state: HoveredState, isDark: boolean): string {
   if (state === "validMove") {
     return "bg-green-400";
-  } else if (state === "invalidMove") {
-    return "bg-red-300";
   }
   return isDark ? "bg-orange-200" : "bg-yellow-900";
 }

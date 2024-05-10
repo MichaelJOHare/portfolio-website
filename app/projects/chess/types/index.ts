@@ -46,10 +46,17 @@ export enum PieceType {
   KING = "king",
 }
 
+export type PieceSetup = {
+  type: PieceType;
+  positions: { row: number; col: number }[];
+  movementStrategy: MovementStrategy;
+};
+
 export interface GameState {
   board: Square[][];
   players: Player[];
   piecesByPlayer: Map<Player, Piece[]>;
+  currentPlayerMoves: Move[];
   capturedPieces: Piece[];
   currentPlayerIndex: number;
   moveHistory: Move[];
@@ -64,7 +71,7 @@ export type GameStateContext = {
   enPassantTarget?: Square;
   moveHistory: Move[];
   initializeBoard: () => void;
-  canMove: (piece: Piece, targetSquare: Square) => Move | null;
+  playerCanMove: (piece: Piece, targetSquare: Square) => Move | null;
   handleMove: (piece: Piece, targetSquare: Square) => void;
 };
 

@@ -1,14 +1,39 @@
 "use client";
 
+import { useEffect } from "react";
+import { monitorForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import { ChessSquare } from "./ChessSquare";
 import { ChessPiece } from "./ChessPiece";
 import { useGameContext } from "../../hooks/useGameContext";
-import { createSquare } from "../../utils";
+import { createSquare, isSquare } from "../../utils";
 
 export default function Board() {
-  const { board } = useGameContext();
-  if (!board[0][0].piece) {
-    return null;
+  const { board, handleMove, playerCanMove } = useGameContext();
+
+  useEffect(() => {
+    return monitorForElements({
+      onDrop({ source, location }) {
+        const destination = location.current.dropTargets[0];
+        if (!destination) {
+          return;
+        }
+        const destinationLocation = destination.data.square;
+        const sourceLocation = source.data.square;
+
+        if (!isSquare(destinationLocation) || !isSquare(sourceLocation)) {
+          return;
+        }
+        const piece = board[sourceLocation.row][sourceLocation.col].piece;
+        if (piece) {
+          const movingPiece = sourceLocation.piece;
+          movingPiece && handleMove(movingPiece, destinationLocation);
+        }
+      },
+    });
+  }, [board, playerCanMove, handleMove]);
+
+  if (!board) {
+    return <div>Loading...</div>;
   }
 
   return (

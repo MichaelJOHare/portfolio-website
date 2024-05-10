@@ -5,7 +5,7 @@ import {
   Square,
   PlayerColor,
   PieceType,
-} from "../types";
+} from "../../types";
 import {
   createEnPassantMove,
   createPromotionMove,
@@ -13,7 +13,7 @@ import {
   createStandardMove,
   getPieceAt,
   isEmpty,
-} from "../utils";
+} from "..";
 
 export const pawnMovementStrategy: MovementStrategy = (
   board,
