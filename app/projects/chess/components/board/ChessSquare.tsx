@@ -1,18 +1,25 @@
 import { useRef, useState, useEffect } from "react";
 import { useGameContext } from "../../hooks/useGameContext";
-import { Square, SquareProps } from "../../types";
+import { SquareProps } from "../../types";
 import { dropTargetForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
-import { createSquare, getPieceAt, isSquare } from "../../utils";
+import { createSquare, getPieceAt, isSquare, isEmpty } from "../../utils";
 
 type HoveredState = "idle" | "validMove" | "invalidMove";
 
-export const ChessSquare = ({ square, children }: SquareProps) => {
+export const ChessSquare = ({
+  square,
+  legalMoveSquares,
+  children,
+}: SquareProps) => {
   const { playerCanMove, board } = useGameContext();
   const ref = useRef(null);
   const [state, setState] = useState<HoveredState>("idle");
 
   const isColumn7 = square[1] === 7;
   const isRow7 = square[0] === 7;
+  const isLegalMoveSquare = legalMoveSquares.some(
+    (move) => move.to.row === square[0] && move.to.col === square[1]
+  );
 
   useEffect(() => {
     const el = ref.current;
@@ -76,6 +83,12 @@ export const ChessSquare = ({ square, children }: SquareProps) => {
         >
           {String.fromCharCode(97 + square[1])}
         </div>
+      )}
+      {isEmpty(board, square[0], square[1]) && isLegalMoveSquare && (
+        <div className="absolute w-4 h-4 rounded-full bg-green-600"></div>
+      )}
+      {!isEmpty(board, square[0], square[1]) && isLegalMoveSquare && (
+        <div>{/* add corner highlights here */}</div>
       )}
     </div>
   );

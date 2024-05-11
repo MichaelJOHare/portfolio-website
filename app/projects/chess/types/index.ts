@@ -8,6 +8,7 @@ export type Square = {
 
 export type SquareProps = {
   square: number[];
+  legalMoveSquares: Move[];
   children: ReactNode;
 };
 
@@ -71,6 +72,7 @@ export type GameStateContext = {
   moveHistory: Move[];
   players: Player[];
   currentPlayerIndex: number;
+  currentPlayerMoves: Move[];
   initializeBoard: () => void;
   playerCanMove: (piece: Piece, targetSquare: Square) => Move | null;
   handleMove: (piece: Piece, targetSquare: Square) => void;

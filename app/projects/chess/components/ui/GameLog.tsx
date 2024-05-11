@@ -56,21 +56,22 @@ export default function GameLog() {
             </div>
           </div>
         </div>
-        <div className="h-full flex px-4 py-2 min-h-64 bg-white rounded-b-lg dark:bg-gray-800">
+        <div className="h-full flex flex-col px-4 py-2 min-h-64 bg-white rounded-b-lg dark:bg-gray-800">
           <div className="h-full">
-            {/* need to make flex, turn these into algebraic, use piece unicodes, etc. */}
-            <ul className="cursor-pointer">
+            {/* need to make flex, use piece unicodes, disambiguate, etc. */}
+            <ul className="cursor-pointer flex flex-wrap">
               {moves.map((move, index) => {
                 const { from, to } = move;
+                const isEvenIndex = index % 2 === 0;
                 return (
-                  <li key={index} onClick={() => onMoveClick(index)}>
-                    {[
-                      index + 1 + ". ",
-                      from.row.toString(),
-                      from.col.toString(),
-                      to.row.toString(),
-                      to.col.toString(),
-                    ]}
+                  <li
+                    className={`inline-block ${isEvenIndex ? "ml-2 mr-1" : ""}`}
+                    key={index}
+                    onClick={() => onMoveClick(index)}
+                  >
+                    {isEvenIndex && `${index + 1}. `}
+                    {String.fromCharCode(97 + to.col)}
+                    {8 - to.row}
                   </li>
                 );
               })}

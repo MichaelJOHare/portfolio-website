@@ -87,7 +87,10 @@ export const isAttackedByOpponent = (
   targetSquare: Square
 ): boolean => {
   return opponentMoves.some((move) => {
-    return move.to.row === targetSquare.row && move.to.col === targetSquare.col;
+    return (
+      (move.to.row === targetSquare.row && move.to.col === targetSquare.col) ||
+      (move.capturedPiece && move.capturedPiece.type === PieceType.KING)
+    );
   });
 };
 

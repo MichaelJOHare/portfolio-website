@@ -1,18 +1,39 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { monitorForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import { ChessSquare } from "./ChessSquare";
 import { ChessPiece } from "./ChessPiece";
 import { useGameContext } from "../../hooks/useGameContext";
 import { isSquare, getPieceAt, createSquare } from "../../utils";
+import { Move } from "../../types";
 
 export default function Board() {
-  const { board, handleMove, playerCanMove } = useGameContext();
+  const { board, currentPlayerMoves, handleMove } = useGameContext();
+  const [legalMoveSquares, setLegalMoveSquares] = useState<Move[]>([]);
 
   useEffect(() => {
     return monitorForElements({
+      onDragStart: ({ source }) => {
+        const pieceSourceSquare = source.data.square;
+        if (!isSquare(pieceSourceSquare)) {
+          return;
+        }
+        const piece = getPieceAt(
+          board,
+          pieceSourceSquare[0],
+          pieceSourceSquare[1]
+        );
+        const moves =
+          piece &&
+          currentPlayerMoves.filter((move) => move.piece.id === piece.id);
+        moves &&
+          moves.forEach((move) => {
+            setLegalMoveSquares((prevState) => [...prevState, move]);
+          });
+      },
       onDrop({ source, location }) {
+        setLegalMoveSquares([]);
         const destination = location.current.dropTargets[0];
         if (!destination) {
           return;
@@ -33,7 +54,7 @@ export default function Board() {
         }
       },
     });
-  }, [board, playerCanMove, handleMove]);
+  }, [board, handleMove]);
 
   if (!board) {
     return <div>Loading...</div>;
@@ -46,6 +67,7 @@ export default function Board() {
           <ChessSquare
             key={`${rowIndex}-${colIndex}`}
             square={[rowIndex, colIndex]}
+            legalMoveSquares={legalMoveSquares}
           >
             {square.piece && square.piece.isAlive && (
               <ChessPiece

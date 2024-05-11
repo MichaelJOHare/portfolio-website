@@ -217,6 +217,14 @@ export const useGameManagement = (): GameStateContext => {
             copiedPiecesByPlayer,
             copiedBoard
           );
+          console.log(
+            move.piece.type,
+            move.to,
+            playersKing,
+            playersKing &&
+              isAttackedByOpponent(opponentMoves, playersKing.currentSquare),
+            move
+          );
           if (
             playersKing &&
             !isAttackedByOpponent(opponentMoves, playersKing.currentSquare)
