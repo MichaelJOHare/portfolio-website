@@ -7,7 +7,7 @@ import {
 } from "..";
 
 export const kingMovementStrategy: MovementStrategy = (board, piece) => {
-  let legalMoves: Move[] = [];
+  const legalMoves: Move[] = [];
   let row = piece.currentSquare.row;
   let col = piece.currentSquare.col;
 
@@ -27,7 +27,6 @@ export const kingMovementStrategy: MovementStrategy = (board, piece) => {
     king: Piece,
     legalMoves: Move[]
   ) => {
-    legalMoves = [];
     const rookPositions = {
       kingSideRookCol: 7,
       queenSideRookCol: 0,
@@ -102,8 +101,8 @@ export const kingMovementStrategy: MovementStrategy = (board, piece) => {
         );
       }
     }
-    addCastlingMoves(board, piece, legalMoves);
   });
+  addCastlingMoves(board, piece, legalMoves);
 
   return legalMoves;
 };

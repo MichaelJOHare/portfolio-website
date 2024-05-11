@@ -2,17 +2,17 @@ import { useRef, useState, useEffect } from "react";
 import { useGameContext } from "../../hooks/useGameContext";
 import { Square, SquareProps } from "../../types";
 import { dropTargetForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
-import { isSquare } from "../../utils";
+import { createSquare, getPieceAt, isSquare } from "../../utils";
 
 type HoveredState = "idle" | "validMove" | "invalidMove";
 
 export const ChessSquare = ({ square, children }: SquareProps) => {
-  const { playerCanMove } = useGameContext();
+  const { playerCanMove, board } = useGameContext();
   const ref = useRef(null);
   const [state, setState] = useState<HoveredState>("idle");
 
-  const isColumn7 = square.col === 7;
-  const isRow7 = square.row === 7;
+  const isColumn7 = square[1] === 7;
+  const isRow7 = square[0] === 7;
 
   useEffect(() => {
     const el = ref.current;
@@ -25,10 +25,12 @@ export const ChessSquare = ({ square, children }: SquareProps) => {
         if (!isSquare(source.data.square)) {
           return false;
         }
-        const movingPiece = source.data.square.piece;
+        const squareArray = source.data.square;
+        const movingPiece = getPieceAt(board, squareArray[0], squareArray[1]);
         if (
           movingPiece &&
-          playerCanMove(movingPiece, square)?.piece.id === movingPiece.id
+          playerCanMove(movingPiece, createSquare(square[0], square[1]))?.piece
+            .id === movingPiece.id
         ) {
           setState("validMove");
         }
@@ -38,15 +40,15 @@ export const ChessSquare = ({ square, children }: SquareProps) => {
         if (!isSquare(source.data.square)) {
           return false;
         }
-        return !isSameSquare(source.data.square, square);
+        return !isSameSquare(source.data.square, [square[0], square[1]]);
       },
       onDrop: () => {
         setState("idle");
       },
     });
-  }, [square, playerCanMove]);
+  }, [square, board, playerCanMove]);
 
-  const isDark = (square.row + square.col) % 2 === 0;
+  const isDark = (square[0] + square[1]) % 2 === 0;
 
   return (
     <div
@@ -63,7 +65,7 @@ export const ChessSquare = ({ square, children }: SquareProps) => {
             isDark ? "text-yellow-900" : "text-orange-200"
           } select-none`}
         >
-          {8 - square.row}
+          {8 - square[0]}
         </div>
       )}
       {isRow7 && (
@@ -72,7 +74,7 @@ export const ChessSquare = ({ square, children }: SquareProps) => {
             isDark ? "text-yellow-900" : "text-orange-200"
           } select-none`}
         >
-          {String.fromCharCode(97 + square.col)}
+          {String.fromCharCode(97 + square[1])}
         </div>
       )}
     </div>
@@ -86,9 +88,8 @@ function getColor(state: HoveredState, isDark: boolean): string {
   return isDark ? "bg-orange-200" : "bg-yellow-900";
 }
 
-function isSameSquare(sourceSquare: Square, targetSquare: Square) {
+function isSameSquare(sourceSquare: number[], targetSquare: number[]) {
   return (
-    sourceSquare.row === targetSquare.row &&
-    sourceSquare.col === targetSquare.col
+    sourceSquare[0] === targetSquare[0] && sourceSquare[1] === targetSquare[1]
   );
 }

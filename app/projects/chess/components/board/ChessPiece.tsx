@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from "react";
-import { PieceType, PlayerColor, Square } from "../../types";
+import { Piece, PieceType, PlayerColor, Square } from "../../types";
 import { draggable } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import { useGameContext } from "../../hooks/useGameContext";
 
@@ -7,14 +7,16 @@ export const ChessPiece = ({
   type,
   color,
   square,
+  piece,
 }: {
   type: PieceType;
   color: PlayerColor;
-  square: Square;
+  square: number[];
+  piece: Piece;
 }) => {
   const ref = useRef(null);
   const [dragging, setDragging] = useState<boolean>(false);
-  const { currentPlayer } = useGameContext();
+  const { players, currentPlayerIndex } = useGameContext();
 
   useEffect(() => {
     const el = ref.current;
@@ -24,8 +26,9 @@ export const ChessPiece = ({
       element: el,
       getInitialData: () => ({ square }),
       canDrag: () => {
-        if (square.piece) {
-          return square.piece.color === currentPlayer.color;
+        const movingPiece = piece;
+        if (movingPiece) {
+          return movingPiece.color === players[currentPlayerIndex].color;
         } else {
           return false;
         }
@@ -33,7 +36,7 @@ export const ChessPiece = ({
       onDragStart: () => setDragging(true),
       onDrop: () => setDragging(false),
     });
-  }, [square, type, currentPlayer.color]);
+  }, [type, square, piece, players, currentPlayerIndex]);
 
   return (
     <img

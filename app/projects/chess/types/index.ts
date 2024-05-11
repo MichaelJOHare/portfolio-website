@@ -7,7 +7,7 @@ export type Square = {
 };
 
 export type SquareProps = {
-  square: Square;
+  square: number[];
   children: ReactNode;
 };
 
@@ -67,9 +67,10 @@ export interface GameState {
 
 export type GameStateContext = {
   board: Square[][];
-  currentPlayer: Player;
   enPassantTarget?: Square;
   moveHistory: Move[];
+  players: Player[];
+  currentPlayerIndex: number;
   initializeBoard: () => void;
   playerCanMove: (piece: Piece, targetSquare: Square) => Move | null;
   handleMove: (piece: Piece, targetSquare: Square) => void;

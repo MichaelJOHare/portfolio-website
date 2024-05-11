@@ -5,10 +5,10 @@ import {
   Move,
   PieceSetup,
   PieceType,
-  PlayerColor,
   CastlingMove,
 } from "../types";
 import { copyPiece } from "./piece";
+import { createSquare } from "./square";
 import {
   rookMovementStrategy,
   knightMovementStrategy,
@@ -20,11 +20,7 @@ import {
 
 export const defaultBoard = (): Square[][] => {
   return Array.from({ length: 8 }, (_, row) =>
-    Array.from({ length: 8 }, (_, col) => ({
-      row,
-      col,
-      piece: undefined,
-    }))
+    Array.from({ length: 8 }, (_, col) => createSquare(row, col, undefined))
   );
 };
 
@@ -88,69 +84,11 @@ export const isEmpty = (
 
 export const isAttackedByOpponent = (
   opponentMoves: Move[],
-  row: number,
-  col: number,
-  player: Player
+  targetSquare: Square
 ): boolean => {
-  console.log(opponentMoves);
   return opponentMoves.some((move) => {
-    /*     const piece = move.piece;
-    if (piece.type === PieceType.PAWN) {
-      return isSquareAttackedByPawn(
-        piece.currentSquare.row,
-        piece.currentSquare.col,
-        row,
-        col,
-        player
-      );
-    } */
-    return (
-      /*       piece &&
-      piece.player.color !== player.color &&
-      move.to.row === row &&
-      move.to.col === col */
-      move.capturedPiece && move.capturedPiece.type === PieceType.KING
-    );
+    return move.to.row === targetSquare.row && move.to.col === targetSquare.col;
   });
-};
-
-export const isSquareAttackedByPawn = (
-  pawnRow: number,
-  pawnCol: number,
-  kingRow: number,
-  targetCol: number,
-  player: Player
-) => {
-  if (player.color === PlayerColor.WHITE) {
-    return (
-      pawnRow + 1 === kingRow &&
-      (pawnCol - 1 === targetCol || pawnCol + 1 === targetCol)
-    );
-  } else {
-    return (
-      pawnRow - 1 === kingRow &&
-      (pawnCol - 1 === targetCol || pawnCol + 1 === targetCol)
-    );
-  }
-};
-
-export const isEmptyAndNotAttacked = (
-  opponentMoves: Move[],
-  board: Square[][],
-  king: Piece,
-  startCol: number,
-  endCol: number,
-  player: Player
-) => {
-  for (let col = startCol; col <= endCol; col++) {
-    if (
-      !isEmpty(board, king.currentSquare.row, col) ||
-      isAttackedByOpponent(opponentMoves, king.currentSquare.row, col, player)
-    ) {
-      return false;
-    }
-  }
-  return true;
 };
 
 export const isValidCastlingMove = (
@@ -158,14 +96,36 @@ export const isValidCastlingMove = (
   opponentMoves: Move[],
   board: Square[][]
 ) => {
-  return isEmptyAndNotAttacked(
-    opponentMoves,
-    board,
-    move.piece,
-    move.kingFrom.col,
-    move.kingTo.col,
-    move.piece.player
-  );
+  const king = move.piece;
+  const kingSquare = king.currentSquare;
+
+  const isSquareOccupiedOrAttacked = (row: number, col: number) => {
+    if (
+      !isEmpty(board, row, col) ||
+      isAttackedByOpponent(opponentMoves, createSquare(row, col))
+    ) {
+      return true;
+    }
+    return false;
+  };
+
+  if (kingSquare.col - move.kingTo.col < 0) {
+    if (
+      !isSquareOccupiedOrAttacked(kingSquare.row, kingSquare.col + 1) &&
+      !isSquareOccupiedOrAttacked(kingSquare.row, kingSquare.col + 2)
+    ) {
+      return true;
+    }
+    return false;
+  } else {
+    if (
+      !isSquareOccupiedOrAttacked(kingSquare.row, kingSquare.col - 1) &&
+      !isSquareOccupiedOrAttacked(kingSquare.row, kingSquare.col - 2)
+    ) {
+      return true;
+    }
+    return false;
+  }
 };
 
 export const copyBoard = (board: Square[][]) => {

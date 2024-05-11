@@ -5,7 +5,7 @@ import { monitorForElements } from "@atlaskit/pragmatic-drag-and-drop/element/ad
 import { ChessSquare } from "./ChessSquare";
 import { ChessPiece } from "./ChessPiece";
 import { useGameContext } from "../../hooks/useGameContext";
-import { createSquare, isSquare } from "../../utils";
+import { isSquare, getPieceAt, createSquare } from "../../utils";
 
 export default function Board() {
   const { board, handleMove, playerCanMove } = useGameContext();
@@ -17,16 +17,19 @@ export default function Board() {
         if (!destination) {
           return;
         }
+
         const destinationLocation = destination.data.square;
         const sourceLocation = source.data.square;
 
         if (!isSquare(destinationLocation) || !isSquare(sourceLocation)) {
           return;
         }
-        const piece = board[sourceLocation.row][sourceLocation.col].piece;
+        const piece = getPieceAt(board, sourceLocation[0], sourceLocation[1]);
         if (piece) {
-          const movingPiece = sourceLocation.piece;
-          movingPiece && handleMove(movingPiece, destinationLocation);
+          handleMove(
+            piece,
+            createSquare(destinationLocation[0], destinationLocation[1])
+          );
         }
       },
     });
@@ -42,13 +45,14 @@ export default function Board() {
         row.map((square, colIndex) => (
           <ChessSquare
             key={`${rowIndex}-${colIndex}`}
-            square={createSquare(rowIndex, colIndex)}
+            square={[rowIndex, colIndex]}
           >
             {square.piece && square.piece.isAlive && (
               <ChessPiece
                 type={square.piece.type}
                 color={square.piece.color}
-                square={square}
+                piece={square.piece}
+                square={[rowIndex, colIndex]}
               />
             )}
           </ChessSquare>

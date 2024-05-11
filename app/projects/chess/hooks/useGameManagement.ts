@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   GameStateContext,
   GameState,
@@ -17,7 +17,6 @@ import {
   copyBoard,
   createPlayer,
   createPiece,
-  createSquare,
   defaultBoard,
   isAttackedByOpponent,
   setupPieces,
@@ -41,8 +40,6 @@ export const useGameManagement = (): GameStateContext => {
     fullMoveNumber: 1,
   });
 
-  const currentPlayer = gameState.players[gameState.currentPlayerIndex];
-  const opposingPlayer = gameState.players[1 - gameState.currentPlayerIndex];
   const player1 = gameState.players[0];
   const player2 = gameState.players[1];
 
@@ -52,9 +49,6 @@ export const useGameManagement = (): GameStateContext => {
       piecesByPlayerState: Map<Player, Piece[]>,
       boardState: Square[][]
     ) => {
-      if (move.piece.color !== currentPlayer.color) {
-        return;
-      }
       switch (move.type) {
         case MoveType.STNDRD:
           const updatedPiece = {
@@ -64,8 +58,9 @@ export const useGameManagement = (): GameStateContext => {
           };
           boardState[move.from.row][move.from.col].piece = undefined;
 
-          const capturedPiece = move.capturedPiece;
+          const capturedPiece = boardState[move.to.row][move.to.col].piece;
           if (capturedPiece) {
+            // might mess with genLegalMoves
             setGameState((prevState) => ({
               ...prevState,
               capturedPieces: [...prevState.capturedPieces, capturedPiece],
@@ -113,9 +108,13 @@ export const useGameManagement = (): GameStateContext => {
             ...enPassantMove.piece,
             currentSquare: enPassantMove.to,
           };
+          const epCapturedPiece =
+            enPassantMove.capturedPiece &&
+            boardState[enPassantMove.capturedPieceSquare.row][
+              enPassantMove.capturedPieceSquare.col
+            ].piece;
 
-          enPassantMove.capturedPiece &&
-            (enPassantMove.capturedPiece.isAlive = false);
+          epCapturedPiece && (epCapturedPiece.isAlive = false);
           boardState[enPassantMove.capturedPieceSquare.row][
             enPassantMove.capturedPieceSquare.col
           ].piece = undefined;
@@ -148,11 +147,15 @@ export const useGameManagement = (): GameStateContext => {
         }));
       }
     },
-    [currentPlayer.color]
+    []
   );
 
   const getPlayerMoves = useCallback(
-    (player: Player, piecesByPlayer: Map<Player, Piece[]>) => {
+    (
+      player: Player,
+      piecesByPlayer: Map<Player, Piece[]>,
+      board: Square[][]
+    ) => {
       const playerPieces = piecesByPlayer.get(player);
       const playerMoves: Move[] = [];
 
@@ -162,19 +165,15 @@ export const useGameManagement = (): GameStateContext => {
         if (piece.isAlive) {
           const pieceMoves =
             piece.type === PieceType.PAWN
-              ? piece.movementStrategy(
-                  gameState.board,
-                  piece,
-                  gameState.moveHistory
-                )
-              : piece.movementStrategy(gameState.board, piece);
+              ? piece.movementStrategy(board, piece, gameState.moveHistory)
+              : piece.movementStrategy(board, piece);
           playerMoves.push(...pieceMoves);
         }
       });
 
       return playerMoves;
     },
-    [gameState.board, gameState.moveHistory, gameState.piecesByPlayer]
+    [gameState.moveHistory]
   );
 
   const generateLegalMoves = useCallback(
@@ -183,69 +182,69 @@ export const useGameManagement = (): GameStateContext => {
       const legalMoves: Move[] = [];
 
       moves.forEach((move) => {
-        console.log(move.piece.color, move.piece.type, move.to, move);
+        // can move this outside once i make undoMove
         const { copiedBoard, copiedPiecesByPlayer } = copyBoard(
           gameState.board
         );
-        const playersPieces = copiedPiecesByPlayer.get(currentPlayer);
+        const playersPieces = copiedPiecesByPlayer.get(
+          gameState.players[gameState.currentPlayerIndex]
+        );
         if (playersPieces) {
           playersKing = playersPieces.find((piece) => {
             return piece.type === PieceType.KING;
           });
         }
-        executeMove(move, copiedPiecesByPlayer, copiedBoard);
-        const opponentMoves = getPlayerMoves(
-          opposingPlayer,
-          copiedPiecesByPlayer
-        );
 
-        if (
-          move.type === MoveType.CASTLE &&
-          isValidCastlingMove(move as CastlingMove, opponentMoves, copiedBoard)
-        ) {
-          legalMoves.push(move);
-        }
-
-        if (
-          playersKing &&
-          !isAttackedByOpponent(
-            opponentMoves,
-            playersKing.currentSquare.row,
-            playersKing.currentSquare.col,
-            currentPlayer
-          )
-        ) {
-          legalMoves.push(move);
+        if (move.type === MoveType.CASTLE) {
+          const opponentMoves = getPlayerMoves(
+            gameState.players[1 - gameState.currentPlayerIndex],
+            copiedPiecesByPlayer,
+            copiedBoard
+          );
+          if (
+            isValidCastlingMove(
+              move as CastlingMove,
+              opponentMoves,
+              copiedBoard
+            )
+          ) {
+            legalMoves.push(move);
+          }
+        } else {
+          executeMove(move, copiedPiecesByPlayer, copiedBoard);
+          const opponentMoves = getPlayerMoves(
+            gameState.players[1 - gameState.currentPlayerIndex],
+            copiedPiecesByPlayer,
+            copiedBoard
+          );
+          if (
+            playersKing &&
+            !isAttackedByOpponent(opponentMoves, playersKing.currentSquare)
+          ) {
+            legalMoves.push(move);
+          }
         }
       });
-
       return legalMoves;
     },
-    [executeMove, getPlayerMoves, gameState.board]
+    [
+      executeMove,
+      getPlayerMoves,
+      gameState.board,
+      gameState.currentPlayerIndex,
+      gameState.players,
+    ]
   );
 
   const switchPlayer = useCallback(() => {
     setGameState((prevState) => {
       const newCurrentPlayerIndex = 1 - prevState.currentPlayerIndex;
-      const newGameState = {
+
+      return {
         ...prevState,
         currentPlayerIndex: newCurrentPlayerIndex,
-        currentPlayerMoves: generateLegalMoves(
-          getPlayerMoves(
-            prevState.players[newCurrentPlayerIndex],
-            gameState.piecesByPlayer
-          )
-        ),
       };
-      return newGameState;
     });
-  }, [getPlayerMoves, generateLegalMoves]);
-
-  const clearBoard = useCallback(() => {
-    setGameState((prevState) => ({
-      ...prevState,
-      board: defaultBoard(),
-    }));
   }, []);
 
   const updatePlayerPieces = (
@@ -269,13 +268,10 @@ export const useGameManagement = (): GameStateContext => {
     }));
   }, []);
 
-  const initializeBoardCalled = useRef(false);
   const initializeBoard = useCallback(() => {
-    if (initializeBoardCalled.current) {
-      return;
-    }
-
     const setup = setupPieces;
+    const newBoard = gameState.board;
+    let newPiecesByPlayer = new Map();
 
     [PlayerColor.WHITE, PlayerColor.BLACK].forEach((color) => {
       const rowOffset = color === PlayerColor.WHITE ? 7 : 0;
@@ -286,7 +282,7 @@ export const useGameManagement = (): GameStateContext => {
           const player = color === PlayerColor.WHITE ? player1 : player2;
           const pieceRow =
             row + (type === PieceType.PAWN ? pawnRow - 1 : rowOffset);
-          const square = createSquare(pieceRow, col);
+          const square = gameState.board[pieceRow][col];
           const hasMoved =
             type === PieceType.ROOK || type === PieceType.KING
               ? false
@@ -302,34 +298,59 @@ export const useGameManagement = (): GameStateContext => {
             hasMoved
           );
 
-          gameState.board[pieceRow][col].piece = piece;
-          const playerPieces = gameState.piecesByPlayer.get(player) || [];
-          gameState.piecesByPlayer.set(player, [...playerPieces, piece]);
+          newBoard[pieceRow][col].piece = piece;
+          const playerPieces = newPiecesByPlayer.get(player) || [];
+          newPiecesByPlayer.set(player, [...playerPieces, piece]);
         });
       });
     });
 
-    gameState.currentPlayerMoves = generateLegalMoves(
-      getPlayerMoves(player1, gameState.piecesByPlayer)
+    setGameState((prevState) => ({
+      ...prevState,
+      board: newBoard,
+      piecesByPlayer: newPiecesByPlayer,
+    }));
+  }, [player1, player2, gameState.board]);
+  useEffect(() => {
+    const currentPlayerMoves = generateLegalMoves(
+      getPlayerMoves(player1, gameState.piecesByPlayer, gameState.board)
     );
-    initializeBoardCalled.current = true;
-  }, [player1, player2, gameState, generateLegalMoves, getPlayerMoves]);
+    setGameState((prevState) => ({
+      ...prevState,
+      currentPlayerMoves: currentPlayerMoves,
+    }));
+  }, [
+    gameState.board,
+    gameState.piecesByPlayer,
+    generateLegalMoves,
+    getPlayerMoves,
+    player1,
+  ]);
 
   const playerCanMove = useCallback(
     (movingPiece: Piece, targetSquare: Square) => {
-      if (movingPiece.color !== currentPlayer.color) {
+      if (
+        movingPiece.color !==
+        gameState.players[gameState.currentPlayerIndex].color
+      ) {
         return null;
       }
 
       const foundMove = gameState.currentPlayerMoves.find((move) => {
         return (
-          move.to.row === targetSquare.row && move.to.col === targetSquare.col
+          move.to.row === targetSquare.row &&
+          move.to.col === targetSquare.col &&
+          move.piece.id === movingPiece.id
         );
       });
 
       return foundMove || null;
     },
-    [currentPlayer.color, gameState.currentPlayerMoves]
+    [
+      gameState.currentPlayerMoves,
+      gameState.currentPlayerIndex,
+      gameState.players,
+    ]
   );
 
   const finalizeMove = useCallback(
@@ -347,6 +368,18 @@ export const useGameManagement = (): GameStateContext => {
     ]
   );
 
+  useEffect(() => {
+    const currentPlayer = gameState.players[gameState.currentPlayerIndex];
+    const currentPlayerMoves = generateLegalMoves(
+      getPlayerMoves(currentPlayer, gameState.piecesByPlayer, gameState.board)
+    );
+
+    setGameState((prevState) => ({
+      ...prevState,
+      currentPlayerMoves: currentPlayerMoves,
+    }));
+  }, [gameState.currentPlayerIndex]);
+
   const handleMove = useCallback(
     (movingPiece: Piece, targetSquare: Square) => {
       const tempMove = playerCanMove(movingPiece, targetSquare);
@@ -357,7 +390,7 @@ export const useGameManagement = (): GameStateContext => {
     [playerCanMove, finalizeMove]
   );
 
-  const getEnPassantTarget = useCallback(() => {
+  /*   const getEnPassantTarget = useCallback(() => {
     const move =
       gameState.moveHistory.length > 0
         ? gameState.moveHistory[gameState.moveHistory.length - 1]
@@ -370,9 +403,16 @@ export const useGameManagement = (): GameStateContext => {
       return createSquare((move.from.row + move.to.row) / 2, move.from.col);
     }
     return null;
-  }, [gameState.moveHistory]);
+  }, [gameState.moveHistory]); */
 
-  const undoLastMove = useCallback(() => {
+  /*     const clearBoard = useCallback(() => {
+      setGameState((prevState) => ({
+        ...prevState,
+        board: defaultBoard(),
+      }));
+    }, []); */
+
+  /*   const undoLastMove = useCallback(() => {
     setGameState((prevState) => ({
       ...prevState,
       moveHistory: prevState.moveHistory.slice(0, -1),
@@ -382,11 +422,10 @@ export const useGameManagement = (): GameStateContext => {
       capturedPieces: prevState.capturedPieces.slice(0, -1),
     }));
     switchPlayer();
-  }, [switchPlayer]);
+  }, [switchPlayer]); */
 
   return {
     ...gameState,
-    currentPlayer,
     initializeBoard,
     playerCanMove,
     handleMove,

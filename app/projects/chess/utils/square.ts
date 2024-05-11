@@ -1,25 +1,29 @@
-import { Square } from "../types";
-import { isPiece } from "./piece";
+import { Piece, Square } from "../types";
 
 const legendLetter: string[] = ["a", "b", "c", "d", "e", "f", "g", "h"];
 const legendNumber: string[] = ["8", "7", "6", "5", "4", "3", "2", "1"];
 
-export const createSquare = (row: number, col: number): Square => ({
+export const createSquare = (
+  row: number,
+  col: number,
+  piece?: Piece
+): Square => ({
   row,
   col,
+  piece,
 });
 
-export function isSquare(token: unknown): token is Square {
-  if (typeof token !== "object" || token === null) {
+export function isSquare(token: unknown): token is number[] {
+  if (!Array.isArray(token)) {
     return false;
   }
 
-  const square = token as Square;
+  const square = token as number[];
 
   return (
-    typeof square.row === "number" &&
-    typeof square.col === "number" &&
-    (typeof square.piece === "undefined" || isPiece(square.piece))
+    square.length === 2 &&
+    typeof square[0] === "number" &&
+    typeof square[1] === "number"
   );
 }
 
