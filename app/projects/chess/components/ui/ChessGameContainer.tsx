@@ -23,3 +23,5 @@ export default function ChessGameContainer() {
     </div>
   );
 }
+
+/* have footer below on this page, make cgc take 100vh */

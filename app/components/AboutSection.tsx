@@ -1,20 +1,19 @@
 import Image from "next/image";
 import Backpacking from "@/public/assets/images/backpacking.jpg";
-import Backflip from "@/public/assets/images/backflip.jpg";
 import PicOfMe from "@/public/assets/images/me.png";
+import TheFellas from "@/public/assets/images/the-fellas.png";
 
 export default function AboutSection() {
   return (
     <div>
-      <section className="pt-10 overflow-hidden md:pt-0 sm:pt-16 2xl:pt-16">
+      <section className="overflow-hidden">
         <div className="px-4 mx-auto sm:px-6 lg:px-8 max-w-7xl">
           <div className="grid items-center grid-cols-1 md:grid-cols-2">
-            <div className="px-4 pb-2 lg:pb-0">
-              <h2 className="text-3xl font-bold leading-tight text-black dark:text-white sm:text-4xl lg:text-5xl">
-                Hi 👋 I am <br className="block sm:hidden" />
-                Michael O'Hare
+            <div className="pb-2 lg:pb-0 lg:px-4">
+              <h2 className="text-3xl font-bold leading-tight text-black dark:text-white sm:text-4xl lg:max-w-lg lg:text-5xl">
+                Hi I am Michael O'Hare
               </h2>
-              <p className="max-w-lg mt-3 text-xl leading-relaxed text-black dark:text-gray-300 md:mt-8">
+              <p className="mt-3 text-xl leading-relaxed text-black dark:text-gray-300 md:mt-8">
                 Welcome to my website, it's still a work in progress so new
                 things will keep on being added. I'm Michael (or Mike, whichever
                 you prefer) and I'm in the process of transitioning from the
@@ -30,7 +29,7 @@ export default function AboutSection() {
               <Image
                 src={PicOfMe}
                 alt="picture of me"
-                className="relative w-full xl:max-w-lg xl:mx-auto 2xl:origin-bottom 2xl:scale-110"
+                className="relative w-full xl:max-w-lg xl:mx-auto"
                 width={565}
                 height={665}
                 placeholder="blur"
@@ -44,19 +43,19 @@ export default function AboutSection() {
           <div className="grid items-center grid-cols-1 md:grid-cols-2">
             <div className="relative">
               <Image
-                src={Backflip}
-                alt="picture of me"
+                src={TheFellas}
+                alt="backpacking trip"
                 className="relative px-4 w-full xl:max-w-lg xl:mx-auto 2xl:origin-bottom 2xl:scale-110"
                 width={565}
                 height={665}
                 placeholder="blur"
               ></Image>
             </div>
-            <div className="px-4">
+            <div className="order-first px-4 lg:order-last">
               <h2 className="text-3xl font-bold leading-tight text-black dark:text-white sm:text-4xl lg:text-5xl">
                 Why software development?
               </h2>
-              <p className="max-w-lg mt-3 text-xl leading-relaxed text-black dark:text-gray-300 md:mt-8">
+              <p className="mt-3 text-xl leading-relaxed text-black dark:text-gray-300 md:mt-8">
                 Throughout my life I've always had a deep appreciation for
                 learning how things work, how they break and most importantly -
                 how to fix them. From cars or dirt bikes to computer hardware or
@@ -73,14 +72,14 @@ export default function AboutSection() {
           </div>
         </div>
       </section>
-      <section className="pt-10 overflow-hidden md:pt-0 sm:pt-16 2xl:pt-16">
-        <div className="px-4 mx-auto sm:px-6 lg:px-8 max-w-7xl">
+      <section className="pt-10 overflow-hidden sm:pt-16 2xl:pt-16">
+        <div className="mx-auto sm:px-6 lg:px-8 max-w-7xl">
           <div className="grid items-center grid-cols-1 md:grid-cols-2">
             <div className="px-4 pb-2 lg:pb-0">
               <h2 className="text-3xl font-bold leading-tight text-black dark:text-white sm:text-4xl lg:text-5xl">
                 Where I'm at and where I'm going
               </h2>
-              <p className="max-w-lg mt-3 text-xl leading-relaxed text-black dark:text-gray-300 md:mt-8">
+              <div className="mt-3 text-xl leading-relaxed text-black dark:text-gray-300 md:mt-8">
                 <p>
                   As of 8/18/2023 I'm excited to share that I've graduated from
                   Tech Elevator's rigorous Java coding bootcamp. With hundreds
@@ -100,14 +99,14 @@ export default function AboutSection() {
                   button at the top of the page. I look forward to hearing from
                   you!
                 </p>
-              </p>
+              </div>
             </div>
 
             <div className="relative">
               <Image
                 src={Backpacking}
                 alt="Picture of backpacking"
-                className="relative px-4 w-full xl:max-w-lg xl:mx-auto 2xl:origin-bottom 2xl:scale-110"
+                className="relative px-4 w-full lg:max-w-lg mx-auto lg:origin-bottom lg:scale-110"
                 width={565}
                 height={665}
                 placeholder="blur"

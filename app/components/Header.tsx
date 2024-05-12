@@ -8,7 +8,7 @@ import ThemeSwitcher from "./ThemeSwitcher";
 
 const Header = () => {
   return (
-    <header className="flex items-center justify-between pb-10 pt-5">
+    <header className="flex items-center justify-between pb-5 pt-5">
       <div>
         <Link href="/" aria-label={siteMetadata.headerTitle}>
           <div className="flex items-center justify-between">
