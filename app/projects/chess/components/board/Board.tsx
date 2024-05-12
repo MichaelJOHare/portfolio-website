@@ -6,42 +6,59 @@ import { ChessSquare } from "./ChessSquare";
 import { ChessPiece } from "./ChessPiece";
 import { PromotionPanel } from "../ui/PromotionPanel";
 import { useGameContext } from "../../hooks/useGameContext";
-import { isSquare, getPieceAt, createSquare } from "../../utils";
+import {
+  isSquare,
+  getPieceAt,
+  createSquare,
+  createPromotionMove,
+} from "../../utils";
 import {
   Move,
   MoveType,
   Piece,
+  PieceType,
   PlayerColor,
   Square,
-  PromotionMove,
-  PieceType,
 } from "../../types";
 
 export default function Board() {
-  const { board, currentPlayerMoves, handleMove } = useGameContext();
+  const { board, currentPlayerMoves, handleMove, playerCanMove } =
+    useGameContext();
   const [legalMoveSquares, setLegalMoveSquares] = useState<Move[]>([]);
   const [showPromotionPanel, setShowPromotionPanel] = useState(false);
   const [promotionSquare, setPromotionSquare] = useState<Square | undefined>();
   const [promotionColor, setPromotionColor] = useState<PlayerColor>();
-  const [selectedPiece, setSelectedPiece] = useState<Piece>();
+  const [squaresToHide, setSquaresToHide] = useState<Square[]>([]);
+  const [promotingPawn, setPromotingPawn] = useState<Piece>();
 
-  const handlePromotionSelect = (square: Square | undefined, type: string) => {
-    const selectedPiece = square && getPieceAt(board, square.row, square.col);
-    selectedPiece && setSelectedPiece(selectedPiece);
-    const promotionMove: PromotionMove | undefined = selectedPiece && {
-      type: MoveType.PROMO,
-      piece: selectedPiece,
-      promotionType: type as PieceType,
-      from: selectedPiece.currentSquare,
-      to: square!,
-    };
+  const handlePromotionSelect = (
+    square: Square | undefined,
+    type: PieceType,
+    promotingPawn: Piece | undefined
+  ) => {
+    if (!promotingPawn || !square) return;
+    const capturedPiece = getPieceAt(board, square.row, square.col);
+    const promotionMove = createPromotionMove(
+      promotingPawn,
+      promotingPawn.currentSquare,
+      square,
+      type,
+      capturedPiece
+    );
 
     if (promotionMove) {
-      handleMove(promotionMove.piece, promotionMove.to);
+      handleMove(promotionMove.piece, promotionMove.to, promotionMove);
     }
 
     setShowPromotionPanel(false);
     setPromotionSquare(undefined);
+    setSquaresToHide([]);
+  };
+
+  const isSquareToHide = (square: Square) => {
+    return squaresToHide.find(
+      (s) => s.row === square.row && s.col === square.col
+    );
   };
 
   useEffect(() => {
@@ -80,7 +97,7 @@ export default function Board() {
         }
         const piece = getPieceAt(board, sourceLocation[0], sourceLocation[1]);
         if (piece) {
-          const move = handleMove(
+          const move = playerCanMove(
             piece,
             createSquare(destinationLocation[0], destinationLocation[1])
           );
@@ -88,11 +105,18 @@ export default function Board() {
             setShowPromotionPanel(true);
             setPromotionSquare(move.to);
             setPromotionColor(move.piece.color);
-            //move.piece.isAlive = false; -> hide it for promotion selector (need to find other pieces in its path to hide temporarily)
-            console.log(move);
-          } else if (promotionColor || promotionSquare) {
+            setPromotingPawn(move.piece);
+            setSquaresToHide(
+              getSquaresToHideDuringPromotion(move.to, move.piece.color)
+            );
+          } else if (move && move.type !== MoveType.PROMO) {
+            handleMove(
+              piece,
+              createSquare(destinationLocation[0], destinationLocation[1])
+            );
             setPromotionColor(undefined);
             setPromotionSquare(undefined);
+            setPromotingPawn(undefined);
           }
         }
       },
@@ -116,6 +140,7 @@ export default function Board() {
         <div className="absolute top-0 left-0 w-[90vmin] h-[90vmin] bg-black bg-opacity-20 z-10 lg:w-[70vmin] lg:h-[70vmin]">
           <PromotionPanel
             square={promotionSquare}
+            promotingPawn={promotingPawn}
             color={promotionColor}
             onPromotionSelect={handlePromotionSelect}
           />
@@ -128,17 +153,28 @@ export default function Board() {
             square={[rowIndex, colIndex]}
             legalMoveSquares={legalMoveSquares}
           >
-            {square.piece && square.piece.isAlive && (
-              <ChessPiece
-                type={square.piece.type}
-                color={square.piece.color}
-                piece={square.piece}
-                square={[rowIndex, colIndex]}
-              />
-            )}
+            {square.piece &&
+              square.piece.isAlive &&
+              !isSquareToHide(square) && (
+                <ChessPiece
+                  type={square.piece.type}
+                  color={square.piece.color}
+                  piece={square.piece}
+                  square={[rowIndex, colIndex]}
+                />
+              )}
           </ChessSquare>
         ))
       )}
     </div>
   );
+}
+
+function getSquaresToHideDuringPromotion(square: Square, color: PlayerColor) {
+  const squaresToHide = [];
+  const increment = color === PlayerColor.WHITE ? 1 : -1;
+  for (let i = 1; i < 3; i++) {
+    squaresToHide.push({ row: square.row + i * increment, col: square.col });
+  }
+  return squaresToHide;
 }

@@ -1,10 +1,16 @@
 import React from "react";
-import { PlayerColor, Square } from "../../types";
+import { useState, useEffect } from "react";
+import { Piece, PieceType, PlayerColor, Square } from "../../types";
 
 export type PromotionPanelProps = {
   square: Square | undefined;
+  promotingPawn: Piece | undefined;
   color: PlayerColor | undefined;
-  onPromotionSelect: (square: Square | undefined, type: string) => void;
+  onPromotionSelect: (
+    square: Square | undefined,
+    type: PieceType,
+    promotingPawn: Piece | undefined
+  ) => void;
 };
 
 export type Positions = {
@@ -16,24 +22,38 @@ export type Positions = {
 
 export const PromotionPanel = ({
   square,
+  promotingPawn,
   color,
   onPromotionSelect,
 }: PromotionPanelProps) => {
-  const promotionPieces = ["queen", "rook", "bishop", "knight"];
+  const [matches, setMatches] = useState(
+    window.matchMedia("(min-width: 768px)").matches
+  );
 
-  const handleClick = (type: string) => {
-    onPromotionSelect(square, type);
+  useEffect(() => {
+    window
+      .matchMedia("(min-width: 768px)")
+      .addEventListener("change", (e) => setMatches(e.matches));
+  }, []);
+
+  const promotionPieces: PieceType[] =
+    color === PlayerColor.WHITE
+      ? [PieceType.QUEEN, PieceType.ROOK, PieceType.BISHOP, PieceType.KNIGHT]
+      : [PieceType.KNIGHT, PieceType.BISHOP, PieceType.ROOK, PieceType.QUEEN];
+
+  const handleClick = (type: PieceType) => {
+    onPromotionSelect(square, type, promotingPawn);
   };
 
   const calculatePromotionPanelPosition = (
     square: Square,
     color: PlayerColor
   ): { top: string; left: string; topLg: string; leftLg: string } => {
-    const top = color === PlayerColor.WHITE ? "top-[0vmin]" : "top-[90vmin]";
-    const left = `lg:left-[${(90 / 8) * square.col}vmin]`;
-    const topLg =
-      color === PlayerColor.WHITE ? "lg:top-[0vmin]" : "lg:top-[70vmin]";
-    const leftLg = `lg:left-[${(70 / 8) * square.col}vmin]`;
+    // top-[0vmin] left-[52.5vmin] left-[67.5]
+    const top = color === PlayerColor.WHITE ? "0vmin" : "90vmin";
+    const left = `${(90 / 8) * square.col}vmin`;
+    const topLg = color === PlayerColor.WHITE ? "0vmin" : "70vmin";
+    const leftLg = `${(70 / 8) * square.col}vmin`;
     return { top, left, topLg, leftLg };
   };
 
@@ -47,20 +67,21 @@ export const PromotionPanel = ({
       {promotionPieces.map((type, index) => (
         <div
           key={index}
-          className={`absolute w-[11.25vmin] h-[11.25vmin] ${
-            positions && positions.top
-          } ${
-            positions && positions.left
-          } cursor-pointer lg:w-[8.75vmin] lg:h-[8.75vmin] ${
-            positions && positions.topLg
-          } ${positions && positions.leftLg}`}
-          style={{ top: `${index * 8.6}vmin` }}
+          className="absolute w-[11.25vmin] h-[11.25vmin] cursor-pointer lg:w-[8.75vmin] lg:h-[8.75vmin]"
+          style={{
+            top: `${
+              color === PlayerColor.WHITE ? index * 8.75 : 35 + index * 8.75
+            }vmin`,
+            left: `${
+              positions && (matches ? positions.leftLg : positions.left)
+            }`,
+          }}
           onClick={() => handleClick(type)}
         >
           <img
             src={`/assets/images/${color}-${type}.svg`}
             alt={`${color}-${type}`}
-            className="w-full h-full"
+            className="w-full h-full hover:border-4 hover:border-green-700 select-none"
           />
         </div>
       ))}

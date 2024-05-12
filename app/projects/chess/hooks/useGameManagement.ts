@@ -22,6 +22,7 @@ import {
   isAttackedByOpponent,
   setupPieces,
   isValidCastlingMove,
+  getMovementStrategyFromType,
 } from "../utils";
 
 export const useGameManagement = (): GameStateContext => {
@@ -58,7 +59,6 @@ export const useGameManagement = (): GameStateContext => {
             hasMoved: true,
           };
           boardState[move.from.row][move.from.col].piece = undefined;
-
           const capturedPiece = boardState[move.to.row][move.to.col].piece;
           if (capturedPiece) {
             // might mess with genLegalMoves
@@ -70,6 +70,7 @@ export const useGameManagement = (): GameStateContext => {
             boardState[move.to.row][move.to.col].piece = undefined;
           }
 
+          // add captured piece to updatePlayerPieces
           boardState[move.to.row][move.to.col].piece = updatedPiece;
           updatePlayerPieces(piecesByPlayerState, move, [updatedPiece]);
           break;
@@ -129,15 +130,19 @@ export const useGameManagement = (): GameStateContext => {
           break;
         case MoveType.PROMO:
           const promotionMove = move as PromotionMove;
-          const promotedPawn = {
+          console.log(promotionMove);
+          const moveStrat = getMovementStrategyFromType(
+            promotionMove.promotionType
+          );
+          const promotedPawn = moveStrat && {
             ...promotionMove.piece,
             currentSquare: promotionMove.to,
             type: promotionMove.promotionType,
+            movementStrategy: moveStrat,
           };
+          console.log(promotedPawn);
           boardState[promotionMove.from.row][promotionMove.from.col].piece =
             undefined;
-          boardState[promotionMove.to.row][promotionMove.to.col].piece =
-            promotedPawn;
           const capturedPiecePromo = boardState[move.to.row][move.to.col].piece;
           if (capturedPiecePromo) {
             // might mess with genLegalMoves
@@ -148,8 +153,11 @@ export const useGameManagement = (): GameStateContext => {
             capturedPiecePromo.isAlive = false;
             boardState[move.to.row][move.to.col].piece = undefined;
           }
+          boardState[promotionMove.to.row][promotionMove.to.col].piece =
+            promotedPawn;
           // add captured piece to updatePlayerPieces
-          updatePlayerPieces(piecesByPlayerState, move, [promotedPawn]);
+          promotedPawn &&
+            updatePlayerPieces(piecesByPlayerState, move, [promotedPawn]);
           break;
       }
       if (move.piece.type === PieceType.PAWN || move.isCapture) {
@@ -351,23 +359,40 @@ export const useGameManagement = (): GameStateContext => {
   ]);
 
   const playerCanMove = useCallback(
-    (movingPiece: Piece, targetSquare: Square) => {
+    (
+      movingPiece: Piece,
+      targetSquare: Square,
+      promotionMove?: PromotionMove
+    ) => {
       if (
         movingPiece.color !==
         gameState.players[gameState.currentPlayerIndex].color
       ) {
-        return null;
+        return undefined;
       }
 
-      const foundMove = gameState.currentPlayerMoves.find((move) => {
-        return (
-          move.to.row === targetSquare.row &&
-          move.to.col === targetSquare.col &&
-          move.piece.id === movingPiece.id
-        );
-      });
+      let foundMove: Move | undefined;
+      if (promotionMove) {
+        foundMove = gameState.currentPlayerMoves.find((move) => {
+          return (
+            move.to.row === targetSquare.row &&
+            move.to.col === targetSquare.col &&
+            move.piece.id === movingPiece.id &&
+            (move as PromotionMove).promotionType ===
+              promotionMove.promotionType
+          );
+        });
+      } else {
+        foundMove = gameState.currentPlayerMoves.find((move) => {
+          return (
+            move.to.row === targetSquare.row &&
+            move.to.col === targetSquare.col &&
+            move.piece.id === movingPiece.id
+          );
+        });
+      }
 
-      return foundMove || null;
+      return foundMove || undefined;
     },
     [
       gameState.currentPlayerMoves,
@@ -411,11 +436,15 @@ export const useGameManagement = (): GameStateContext => {
   ]);
 
   const handleMove = useCallback(
-    (movingPiece: Piece, targetSquare: Square) => {
-      const tempMove = playerCanMove(movingPiece, targetSquare);
+    (
+      movingPiece: Piece,
+      targetSquare: Square,
+      promotionMove: PromotionMove | undefined
+    ) => {
+      const tempMove = playerCanMove(movingPiece, targetSquare, promotionMove);
+      console.log(tempMove);
       if (tempMove && tempMove.piece.id === movingPiece.id) {
         finalizeMove(tempMove);
-        return tempMove;
       }
     },
     [playerCanMove, finalizeMove]

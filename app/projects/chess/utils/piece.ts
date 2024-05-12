@@ -10,6 +10,12 @@ import {
 
 import { isSquare } from "./square";
 import { isPlayer, isPlayerColor } from "./player";
+import {
+  bishopMovementStrategy,
+  knightMovementStrategy,
+  queenMovementStrategy,
+  rookMovementStrategy,
+} from "./strategies";
 
 export const createPiece = (
   player: Player,
@@ -29,6 +35,30 @@ export const createPiece = (
   isAlive,
   hasMoved,
 });
+
+export const getMovementStrategyFromType = (
+  pieceType: PieceType
+): MovementStrategy | undefined => {
+  let moveStrat: MovementStrategy | undefined;
+  switch (pieceType) {
+    case PieceType.QUEEN:
+      moveStrat = queenMovementStrategy;
+      break;
+    case PieceType.ROOK:
+      moveStrat = rookMovementStrategy;
+      break;
+    case PieceType.BISHOP:
+      moveStrat = bishopMovementStrategy;
+      break;
+    case PieceType.KNIGHT:
+      moveStrat = knightMovementStrategy;
+      break;
+    default:
+      moveStrat = undefined;
+      break;
+  }
+  return moveStrat;
+};
 
 export const copyPiece = (piece: Piece): Piece => {
   return {

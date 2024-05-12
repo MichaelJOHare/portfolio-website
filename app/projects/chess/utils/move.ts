@@ -24,7 +24,7 @@ export const createStandardMove = (
   to,
   capturedPiece,
   piece,
-  isPromotion,
+  isPromotion: false,
   isCapture,
 });
 
@@ -76,6 +76,7 @@ export const createPromotionMove = (
   piece: piece,
   from: from,
   to: to,
+  isPromotion: true,
   promotionType: promotionType,
   capturedPiece: capturedPiece,
 });

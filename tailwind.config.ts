@@ -7,6 +7,16 @@ const config: Config = {
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
+  /*   safelist: [
+    {
+      pattern: /top-.+/,
+      variants: ["lg"],
+    },
+    {
+      pattern: /left-.+/,
+      variants: ["lg"],
+    },
+  ], */
   theme: {
     screens: {
       xs: "565px",

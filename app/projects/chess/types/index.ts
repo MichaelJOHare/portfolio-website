@@ -74,8 +74,16 @@ export type GameStateContext = {
   currentPlayerIndex: number;
   currentPlayerMoves: Move[];
   initializeBoard: () => void;
-  playerCanMove: (piece: Piece, targetSquare: Square) => Move | null;
-  handleMove: (piece: Piece, targetSquare: Square) => Move | undefined;
+  playerCanMove: (
+    piece: Piece,
+    targetSquare: Square,
+    promotionMove?: PromotionMove
+  ) => Move | undefined;
+  handleMove: (
+    piece: Piece,
+    targetSquare: Square,
+    promotionMove?: PromotionMove
+  ) => void;
 };
 
 export enum MoveType {
