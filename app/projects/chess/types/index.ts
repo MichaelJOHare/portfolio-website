@@ -84,6 +84,8 @@ export type GameStateContext = {
     targetSquare: Square,
     promotionMove?: PromotionMove
   ) => void;
+  undoMove: () => void;
+  redoMove: () => void;
 };
 
 export enum MoveType {

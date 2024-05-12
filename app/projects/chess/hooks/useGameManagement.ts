@@ -130,7 +130,6 @@ export const useGameManagement = (): GameStateContext => {
           break;
         case MoveType.PROMO:
           const promotionMove = move as PromotionMove;
-          console.log(promotionMove);
           const moveStrat = getMovementStrategyFromType(
             promotionMove.promotionType
           );
@@ -140,7 +139,6 @@ export const useGameManagement = (): GameStateContext => {
             type: promotionMove.promotionType,
             movementStrategy: moveStrat,
           };
-          console.log(promotedPawn);
           boardState[promotionMove.from.row][promotionMove.from.col].piece =
             undefined;
           const capturedPiecePromo = boardState[move.to.row][move.to.col].piece;
@@ -405,15 +403,10 @@ export const useGameManagement = (): GameStateContext => {
     (move: Move) => {
       executeMove(move, gameState.piecesByPlayer, gameState.board);
       addMoveHistory(move);
+      gameState.undoneMoves = [];
       switchPlayer();
     },
-    [
-      gameState.board,
-      gameState.piecesByPlayer,
-      executeMove,
-      addMoveHistory,
-      switchPlayer,
-    ]
+    [gameState, executeMove, addMoveHistory, switchPlayer]
   );
 
   useEffect(() => {
@@ -442,13 +435,53 @@ export const useGameManagement = (): GameStateContext => {
       promotionMove: PromotionMove | undefined
     ) => {
       const tempMove = playerCanMove(movingPiece, targetSquare, promotionMove);
-      console.log(tempMove);
       if (tempMove && tempMove.piece.id === movingPiece.id) {
         finalizeMove(tempMove);
       }
     },
     [playerCanMove, finalizeMove]
   );
+
+  const undoMove = useCallback(() => {
+    if (gameState.moveHistory.length > 0) {
+      setGameState((prevState) => {
+        const lastMove =
+          prevState.moveHistory[prevState.moveHistory.length - 1];
+        const updatedBoardState = prevState.board.map((row, rowIndex) =>
+          row.map((square, colIndex) => ({
+            ...square,
+            piece:
+              lastMove.from.row === rowIndex && lastMove.from.col === colIndex
+                ? lastMove.piece
+                : lastMove.to.row === rowIndex && lastMove.to.col === colIndex
+                ? lastMove.capturedPiece
+                : square.piece,
+          }))
+        );
+        console.log(updatedBoardState);
+        const updatedMoveHistory = prevState.moveHistory.slice(0, -1);
+        const updatedCapturedPieces = prevState.capturedPieces.slice(0, -1);
+        return {
+          ...prevState,
+          boardState: updatedBoardState,
+          moveHistory: updatedMoveHistory,
+          capturedPieces: updatedCapturedPieces,
+          undoneMoves: [...prevState.undoneMoves, lastMove],
+        };
+      });
+      switchPlayer();
+    }
+  }, [switchPlayer, gameState.moveHistory]);
+
+  const redoMove = useCallback(() => {
+    if (gameState.undoneMoves.length > 0) {
+      const lastUndoneMove = gameState.undoneMoves.pop();
+      lastUndoneMove &&
+        executeMove(lastUndoneMove, gameState.piecesByPlayer, gameState.board);
+      lastUndoneMove && addMoveHistory(lastUndoneMove);
+    }
+    switchPlayer();
+  }, [gameState, addMoveHistory, executeMove, switchPlayer]);
 
   /*   const getEnPassantTarget = useCallback(() => {
     const move =
@@ -472,22 +505,12 @@ export const useGameManagement = (): GameStateContext => {
       }));
     }, []); */
 
-  /*   const undoLastMove = useCallback(() => {
-    setGameState((prevState) => ({
-      ...prevState,
-      moveHistory: prevState.moveHistory.slice(0, -1),
-    }));
-    setGameState((prevState) => ({
-      ...prevState,
-      capturedPieces: prevState.capturedPieces.slice(0, -1),
-    }));
-    switchPlayer();
-  }, [switchPlayer]); */
-
   return {
     ...gameState,
     initializeBoard,
     playerCanMove,
     handleMove,
+    undoMove,
+    redoMove,
   };
 };

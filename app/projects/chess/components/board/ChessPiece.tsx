@@ -42,7 +42,10 @@ export const ChessPiece = ({
     <img
       ref={ref}
       className="h-3/4"
-      style={{ opacity: dragging ? 0.5 : 1, cursor: "grab" }}
+      style={{
+        opacity: dragging ? 0.5 : 1,
+        cursor: "grab",
+      }}
       src={`/assets/images/${color}-${type}.svg`}
       alt={`${type}`}
     />

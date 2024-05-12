@@ -9,8 +9,6 @@ import {
   PieceType,
 } from "../types";
 
-// createMove interface? need to allow for creating a move -> depending on type it creates the correct move type
-
 export const createStandardMove = (
   piece: Piece,
   from: Square,
@@ -24,7 +22,7 @@ export const createStandardMove = (
   to,
   capturedPiece,
   piece,
-  isPromotion: false,
+  isPromotion: false, // probably unneeded
   isCapture,
 });
 
