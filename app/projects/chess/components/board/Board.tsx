@@ -124,6 +124,7 @@ export default function Board() {
   }, [
     board,
     handleMove,
+    playerCanMove,
     currentPlayerMoves,
     promotionColor,
     promotionSquare,
