@@ -14,7 +14,7 @@ export default function AboutSection() {
                 Hi 👋 I am <br className="block sm:hidden" />
                 Michael O'Hare
               </h2>
-              <p className="max-w-lg mt-3 text-xl leading-relaxed text-gray-600 dark:text-gray-300 md:mt-8">
+              <p className="max-w-lg mt-3 text-xl leading-relaxed text-black dark:text-gray-300 md:mt-8">
                 Welcome to my website, it's still a work in progress so new
                 things will keep on being added. I'm Michael (or Mike, whichever
                 you prefer) and I'm in the process of transitioning from the
@@ -56,7 +56,7 @@ export default function AboutSection() {
               <h2 className="text-3xl font-bold leading-tight text-black dark:text-white sm:text-4xl lg:text-5xl">
                 Why software development?
               </h2>
-              <p className="max-w-lg mt-3 text-xl leading-relaxed text-gray-600 dark:text-gray-300 md:mt-8">
+              <p className="max-w-lg mt-3 text-xl leading-relaxed text-black dark:text-gray-300 md:mt-8">
                 Throughout my life I've always had a deep appreciation for
                 learning how things work, how they break and most importantly -
                 how to fix them. From cars or dirt bikes to computer hardware or
@@ -80,7 +80,7 @@ export default function AboutSection() {
               <h2 className="text-3xl font-bold leading-tight text-black dark:text-white sm:text-4xl lg:text-5xl">
                 Where I'm at and where I'm going
               </h2>
-              <p className="max-w-lg mt-3 text-xl leading-relaxed text-gray-600 dark:text-gray-300 md:mt-8">
+              <p className="max-w-lg mt-3 text-xl leading-relaxed text-black dark:text-gray-300 md:mt-8">
                 <p>
                   As of 8/18/2023 I'm excited to share that I've graduated from
                   Tech Elevator's rigorous Java coding bootcamp. With hundreds
