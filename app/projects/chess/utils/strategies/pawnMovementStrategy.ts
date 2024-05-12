@@ -178,7 +178,7 @@ export const pawnMovementStrategy: MovementStrategy = (
 
       [-1, 1].forEach((colOffset) => {
         const newCol = col + colOffset;
-        let capturedPiece;
+        let capturedPiece: Piece | undefined;
         if (newCol >= 0 && newCol < 8) {
           capturedPiece = board[forwardSquare.row][newCol].piece;
         }
