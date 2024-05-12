@@ -178,8 +178,11 @@ export const pawnMovementStrategy: MovementStrategy = (
 
       [-1, 1].forEach((colOffset) => {
         const newCol = col + colOffset;
-        const piece = board[forwardSquare.row][newCol].piece;
-        if (piece && newCol >= 0 && newCol < 8 && piece.color !== piece.color) {
+        let capturedPiece;
+        if (newCol >= 0 && newCol < 8) {
+          capturedPiece = board[forwardSquare.row][newCol].piece;
+        }
+        if (capturedPiece && capturedPiece.color !== piece.color) {
           Object.values(PieceType).forEach((promotionType) => {
             if (promotionType !== PieceType.PAWN) {
               const promotionMove = createPromotionMove(
@@ -187,7 +190,7 @@ export const pawnMovementStrategy: MovementStrategy = (
                 { row, col },
                 { row: forwardSquare.row, col: newCol },
                 promotionType,
-                board[forwardSquare.row][newCol].piece
+                capturedPiece
               );
               legalMoves.push(promotionMove);
             }

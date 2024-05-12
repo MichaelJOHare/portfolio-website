@@ -12,6 +12,7 @@ import {
   Square,
   MoveType,
   EnPassantMove,
+  PromotionMove,
 } from "../types";
 import {
   copyBoard,
@@ -123,10 +124,32 @@ export const useGameManagement = (): GameStateContext => {
             undefined;
           boardState[enPassantMove.to.row][enPassantMove.to.col].piece =
             updatedPawn;
+          // add captured piece to updatePlayerPieces
           updatePlayerPieces(piecesByPlayerState, move, [updatedPawn]);
           break;
         case MoveType.PROMO:
-          //placeholder
+          const promotionMove = move as PromotionMove;
+          const promotedPawn = {
+            ...promotionMove.piece,
+            currentSquare: promotionMove.to,
+            type: promotionMove.promotionType,
+          };
+          boardState[promotionMove.from.row][promotionMove.from.col].piece =
+            undefined;
+          boardState[promotionMove.to.row][promotionMove.to.col].piece =
+            promotedPawn;
+          const capturedPiecePromo = boardState[move.to.row][move.to.col].piece;
+          if (capturedPiecePromo) {
+            // might mess with genLegalMoves
+            setGameState((prevState) => ({
+              ...prevState,
+              capturedPieces: [...prevState.capturedPieces, capturedPiecePromo],
+            }));
+            capturedPiecePromo.isAlive = false;
+            boardState[move.to.row][move.to.col].piece = undefined;
+          }
+          // add captured piece to updatePlayerPieces
+          updatePlayerPieces(piecesByPlayerState, move, [promotedPawn]);
           break;
       }
       if (move.piece.type === PieceType.PAWN || move.isCapture) {
@@ -216,14 +239,6 @@ export const useGameManagement = (): GameStateContext => {
             gameState.players[1 - gameState.currentPlayerIndex],
             copiedPiecesByPlayer,
             copiedBoard
-          );
-          console.log(
-            move.piece.type,
-            move.to,
-            playersKing,
-            playersKing &&
-              isAttackedByOpponent(opponentMoves, playersKing.currentSquare),
-            move
           );
           if (
             playersKing &&
@@ -386,13 +401,21 @@ export const useGameManagement = (): GameStateContext => {
       ...prevState,
       currentPlayerMoves: currentPlayerMoves,
     }));
-  }, [gameState.currentPlayerIndex]);
+  }, [
+    gameState.currentPlayerIndex,
+    gameState.board,
+    gameState.piecesByPlayer,
+    gameState.players,
+    generateLegalMoves,
+    getPlayerMoves,
+  ]);
 
   const handleMove = useCallback(
     (movingPiece: Piece, targetSquare: Square) => {
       const tempMove = playerCanMove(movingPiece, targetSquare);
       if (tempMove && tempMove.piece.id === movingPiece.id) {
         finalizeMove(tempMove);
+        return tempMove;
       }
     },
     [playerCanMove, finalizeMove]

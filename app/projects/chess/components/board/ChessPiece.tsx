@@ -18,16 +18,16 @@ export const ChessPiece = ({
   const [dragging, setDragging] = useState<boolean>(false);
   const { players, currentPlayerIndex } = useGameContext();
 
-  const isDraggable = () => {
-    const movingPiece = piece;
-    return (
-      movingPiece && movingPiece.color === players[currentPlayerIndex].color
-    );
-  };
-
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+
+    const isDraggable = () => {
+      const movingPiece = piece;
+      return (
+        movingPiece && movingPiece.color === players[currentPlayerIndex].color
+      );
+    };
 
     return draggable({
       element: el,
