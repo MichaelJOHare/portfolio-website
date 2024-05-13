@@ -12,7 +12,7 @@ const siteMetadata = {
   twitter: "https://twitter.com/Twitter",
   facebook: "https://facebook.com",
   youtube: "https://youtube.com",
-  linkedin: "https://www.linkedin.com",
+  linkedin: "https://www.linkedin.com/in/michaeloharedev/",
   locale: "en-US",
 };
 

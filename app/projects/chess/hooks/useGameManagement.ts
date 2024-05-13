@@ -46,7 +46,7 @@ export const useGameManagement = (): GameStateContext => {
   const player2 = gameState.players[1];
 
   const executeMove = useCallback(
-    (
+    async (
       move: Move,
       piecesByPlayerState: Map<Player, Piece[]>,
       boardState: Square[][]
@@ -215,14 +215,6 @@ export const useGameManagement = (): GameStateContext => {
         const { copiedBoard, copiedPiecesByPlayer } = copyBoard(
           gameState.board
         );
-        const playersPieces = copiedPiecesByPlayer.get(
-          gameState.players[gameState.currentPlayerIndex]
-        );
-        if (playersPieces) {
-          playersKing = playersPieces.find((piece) => {
-            return piece.type === PieceType.KING;
-          });
-        }
 
         if (move.type === MoveType.CASTLE) {
           const opponentMoves = getPlayerMoves(
@@ -241,6 +233,14 @@ export const useGameManagement = (): GameStateContext => {
           }
         } else {
           executeMove(move, copiedPiecesByPlayer, copiedBoard);
+          const playersPieces = copiedPiecesByPlayer.get(
+            gameState.players[gameState.currentPlayerIndex]
+          );
+          if (playersPieces) {
+            playersKing = playersPieces.find((piece) => {
+              return piece.type === PieceType.KING;
+            });
+          }
           const opponentMoves = getPlayerMoves(
             gameState.players[1 - gameState.currentPlayerIndex],
             copiedPiecesByPlayer,
@@ -443,6 +443,7 @@ export const useGameManagement = (): GameStateContext => {
   );
 
   const undoMove = useCallback(() => {
+    // give state to update as param
     if (gameState.moveHistory.length > 0) {
       setGameState((prevState) => {
         const lastMove =
@@ -458,12 +459,14 @@ export const useGameManagement = (): GameStateContext => {
                 : square.piece,
           }))
         );
-        console.log(updatedBoardState);
+        updatePlayerPieces(gameState.piecesByPlayer, lastMove, [
+          lastMove.piece,
+        ]);
         const updatedMoveHistory = prevState.moveHistory.slice(0, -1);
         const updatedCapturedPieces = prevState.capturedPieces.slice(0, -1);
         return {
           ...prevState,
-          boardState: updatedBoardState,
+          board: updatedBoardState,
           moveHistory: updatedMoveHistory,
           capturedPieces: updatedCapturedPieces,
           undoneMoves: [...prevState.undoneMoves, lastMove],
@@ -476,9 +479,10 @@ export const useGameManagement = (): GameStateContext => {
   const redoMove = useCallback(() => {
     if (gameState.undoneMoves.length > 0) {
       const lastUndoneMove = gameState.undoneMoves.pop();
-      lastUndoneMove &&
+      if (lastUndoneMove) {
         executeMove(lastUndoneMove, gameState.piecesByPlayer, gameState.board);
-      lastUndoneMove && addMoveHistory(lastUndoneMove);
+        addMoveHistory(lastUndoneMove);
+      }
     }
     switchPlayer();
   }, [gameState, addMoveHistory, executeMove, switchPlayer]);

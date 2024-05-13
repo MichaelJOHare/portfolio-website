@@ -8,13 +8,14 @@ import {
   MoveType,
   PieceType,
 } from "../types";
+import { isEmpty, isAttackedByOpponent } from "./board";
+import { createSquare } from "./square";
 
 export const createStandardMove = (
   piece: Piece,
   from: Square,
   to: Square,
   capturedPiece?: Piece,
-  isPromotion?: boolean,
   isCapture?: boolean
 ): Move => ({
   type: MoveType.STNDRD,
@@ -22,7 +23,6 @@ export const createStandardMove = (
   to,
   capturedPiece,
   piece,
-  isPromotion: false, // probably unneeded
   isCapture,
 });
 
@@ -40,7 +40,6 @@ export const createCastlingMove = (
   capturedPiece: undefined,
   piece: king,
   rook: rook,
-  isPromotion: false,
   isCapture: false,
   kingFrom,
   kingTo,
@@ -74,7 +73,43 @@ export const createPromotionMove = (
   piece: piece,
   from: from,
   to: to,
-  isPromotion: true,
   promotionType: promotionType,
   capturedPiece: capturedPiece,
 });
+
+export const isValidCastlingMove = (
+  move: CastlingMove,
+  opponentMoves: Move[],
+  board: Square[][]
+) => {
+  const king = move.piece;
+  const kingSquare = king.currentSquare;
+
+  const isSquareOccupiedOrAttacked = (row: number, col: number) => {
+    if (
+      !isEmpty(board, row, col) ||
+      isAttackedByOpponent(opponentMoves, createSquare(row, col))
+    ) {
+      return true;
+    }
+    return false;
+  };
+
+  if (kingSquare.col - move.kingTo.col < 0) {
+    if (
+      !isSquareOccupiedOrAttacked(kingSquare.row, kingSquare.col + 1) &&
+      !isSquareOccupiedOrAttacked(kingSquare.row, kingSquare.col + 2)
+    ) {
+      return true;
+    }
+    return false;
+  } else {
+    if (
+      !isSquareOccupiedOrAttacked(kingSquare.row, kingSquare.col - 1) &&
+      !isSquareOccupiedOrAttacked(kingSquare.row, kingSquare.col - 2)
+    ) {
+      return true;
+    }
+    return false;
+  }
+};

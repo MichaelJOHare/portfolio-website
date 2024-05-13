@@ -1,12 +1,4 @@
-import {
-  Square,
-  Piece,
-  Player,
-  Move,
-  PieceSetup,
-  PieceType,
-  CastlingMove,
-} from "../types";
+import { Square, Piece, Player, Move, PieceSetup, PieceType } from "../types";
 import { copyPiece } from "./piece";
 import { createSquare } from "./square";
 import {
@@ -92,43 +84,6 @@ export const isAttackedByOpponent = (
       (move.capturedPiece && move.capturedPiece.type === PieceType.KING)
     );
   });
-};
-
-export const isValidCastlingMove = (
-  move: CastlingMove,
-  opponentMoves: Move[],
-  board: Square[][]
-) => {
-  const king = move.piece;
-  const kingSquare = king.currentSquare;
-
-  const isSquareOccupiedOrAttacked = (row: number, col: number) => {
-    if (
-      !isEmpty(board, row, col) ||
-      isAttackedByOpponent(opponentMoves, createSquare(row, col))
-    ) {
-      return true;
-    }
-    return false;
-  };
-
-  if (kingSquare.col - move.kingTo.col < 0) {
-    if (
-      !isSquareOccupiedOrAttacked(kingSquare.row, kingSquare.col + 1) &&
-      !isSquareOccupiedOrAttacked(kingSquare.row, kingSquare.col + 2)
-    ) {
-      return true;
-    }
-    return false;
-  } else {
-    if (
-      !isSquareOccupiedOrAttacked(kingSquare.row, kingSquare.col - 1) &&
-      !isSquareOccupiedOrAttacked(kingSquare.row, kingSquare.col - 2)
-    ) {
-      return true;
-    }
-    return false;
-  }
 };
 
 export const copyBoard = (board: Square[][]) => {

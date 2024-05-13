@@ -59,13 +59,19 @@ export default function GameLog() {
         <div className="h-full flex flex-col px-4 py-2 min-h-64 bg-white rounded-b-lg dark:bg-gray-800">
           <div className="h-full">
             {/* need to make flex, use piece unicodes, disambiguate, etc. */}
-            <ul className="cursor-pointer flex flex-wrap">
+            <ul className="flex flex-wrap">
               {moves.map((move, index) => {
                 const { from, to } = move;
                 const isEvenIndex = index % 2 === 0;
                 return (
                   <li
-                    className={`inline-block ${isEvenIndex ? "ml-2 mr-1" : ""}`}
+                    className={`inline-block cursor-pointer ${
+                      isEvenIndex ? "ml-2 mr-1" : ""
+                    } ${
+                      index === moves.length - 1
+                        ? "border-2 border-blue-600 bg-zinc-400"
+                        : ""
+                    }`}
                     key={index}
                     onClick={() => onMoveClick(index)}
                   >
