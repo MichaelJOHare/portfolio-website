@@ -24,6 +24,7 @@ export const ChessPiece = ({
 
     const isDraggable = () => {
       const movingPiece = piece;
+      console.log(movingPiece);
       return (
         movingPiece && movingPiece.color === players[currentPlayerIndex].color
       );
@@ -41,6 +42,7 @@ export const ChessPiece = ({
   return (
     <img
       ref={ref}
+      onContextMenu={(e) => e.preventDefault()}
       className="h-3/4"
       style={{
         opacity: dragging ? 0.5 : 1,

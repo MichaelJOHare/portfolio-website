@@ -16,12 +16,11 @@ export default function AboutSection() {
               <p className="mt-3 text-xl leading-relaxed text-black dark:text-gray-300 md:mt-8">
                 Welcome to my website, it's still a work in progress so new
                 things will keep on being added. I'm Michael (or Mike, whichever
-                you prefer) and I'm in the process of transitioning from the
-                healthcare field into software development through a full stack
-                coding bootcamp called Tech Elevator. I love spending time
-                outdoors doing things like backpacking, skiing, and fishing and
-                having lived in Colorado for 10 years I was able to enjoy all of
-                those quite a lot.
+                you prefer) and I'm in the process of transitioning my career
+                from the healthcare field into software development. I love
+                spending time outdoors doing things like backpacking, skiing,
+                and fishing and having lived in Colorado for 10 years I was able
+                to enjoy all of those quite a lot.
               </p>
             </div>
 

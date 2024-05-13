@@ -136,10 +136,7 @@ export default function Board() {
   }
 
   return (
-    <div
-      onContextMenu={(e) => e.preventDefault()}
-      className="relative grid grid-cols-8 w-[90vmin] h-[90vmin] lg:w-[70vmin] lg:h-[70vmin]"
-    >
+    <div className="relative grid grid-cols-8 w-[90vmin] h-[90vmin] lg:w-[70vmin] lg:h-[70vmin] touch-none">
       {showPromotionPanel && (
         <div className="absolute top-0 left-0 w-[90vmin] h-[90vmin] bg-black bg-opacity-20 z-10 lg:w-[70vmin] lg:h-[70vmin]">
           <PromotionPanel

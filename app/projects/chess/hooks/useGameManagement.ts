@@ -483,8 +483,8 @@ export const useGameManagement = (): GameStateContext => {
         executeMove(lastUndoneMove, gameState.piecesByPlayer, gameState.board);
         addMoveHistory(lastUndoneMove);
       }
+      switchPlayer();
     }
-    switchPlayer();
   }, [gameState, addMoveHistory, executeMove, switchPlayer]);
 
   /*   const getEnPassantTarget = useCallback(() => {
