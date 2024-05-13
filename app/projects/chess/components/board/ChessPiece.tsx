@@ -51,6 +51,7 @@ export const ChessPiece = ({
       style={{
         opacity: dragging ? 0.5 : 1,
         cursor: "grab",
+        WebkitTouchCallout: "none",
       }}
       src={`/assets/images/${color}-${type}.svg`}
       alt={`${type}`}
