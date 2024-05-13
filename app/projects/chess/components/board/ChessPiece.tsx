@@ -42,7 +42,11 @@ export const ChessPiece = ({
   return (
     <img
       ref={ref}
-      onContextMenu={(e) => e.preventDefault()}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        e.nativeEvent.stopImmediatePropagation();
+      }}
       className="h-3/4"
       style={{
         opacity: dragging ? 0.5 : 1,
