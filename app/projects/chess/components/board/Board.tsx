@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { monitorForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import { ChessSquare } from "./ChessSquare";
 import { ChessPiece } from "./ChessPiece";
@@ -19,17 +19,91 @@ import {
   PieceType,
   PlayerColor,
   Square,
+  BoardState,
 } from "../../types";
 
 export default function Board() {
-  const { board, currentPlayerMoves, handleMove, playerCanMove } =
-    useGameContext();
-  const [legalMoveSquares, setLegalMoveSquares] = useState<Move[]>([]);
-  const [showPromotionPanel, setShowPromotionPanel] = useState(false);
-  const [promotionSquare, setPromotionSquare] = useState<Square | undefined>();
-  const [promotionColor, setPromotionColor] = useState<PlayerColor>();
-  const [squaresToHide, setSquaresToHide] = useState<Square[]>([]);
-  const [promotingPawn, setPromotingPawn] = useState<Piece>();
+  const {
+    board,
+    currentPlayerMoves,
+    players,
+    currentPlayerIndex,
+    handleMove,
+    playerCanMove,
+  } = useGameContext();
+  const [boardState, setBoardState] = useState<BoardState>({
+    legalMoveSquares: [],
+    showPromotionPanel: false,
+    promotionSquare: undefined,
+    promotionColor: undefined,
+    squaresToHide: [],
+    promotingPawn: undefined,
+    selectedPiece: undefined,
+  });
+
+  const updateStateAfterMove = useCallback(
+    (move: Move, piece: Piece, row: number, col: number) => {
+      if (move.type === MoveType.PROMO) {
+        setBoardState((prevState) => ({
+          ...prevState,
+          showPromotionPanel: true,
+          promotionSquare: move.to,
+          promotionColor: move.piece.color,
+          promotingPawn: move.piece,
+          squaresToHide: getSquaresToHideDuringPromotion(
+            move.to,
+            move.piece.color
+          ),
+        }));
+      } else {
+        handleMove(piece, createSquare(row, col));
+        setBoardState((prevState) => ({
+          ...prevState,
+          promotionColor: undefined,
+          promotionSquare: undefined,
+          promotingPawn: undefined,
+          selectedPiece: undefined,
+        }));
+      }
+    },
+    [handleMove]
+  );
+
+  const handlePieceSelection = (row: number, col: number) => {
+    // clear highlights
+    setBoardState({
+      ...boardState,
+      legalMoveSquares: [],
+      selectedPiece: undefined,
+    });
+    const piece = getPieceAt(board, row, col);
+    if (piece && piece.color === players[currentPlayerIndex].color) {
+      setBoardState({ ...boardState, selectedPiece: piece });
+      const moves = currentPlayerMoves.filter(
+        (move) => move.piece.id === piece.id
+      );
+      moves &&
+        moves.forEach((move) => {
+          setBoardState((prevState) => ({
+            ...prevState,
+            legalMoveSquares: [...prevState.legalMoveSquares, move],
+          }));
+        });
+    } else if (boardState.selectedPiece) {
+      const move = playerCanMove(
+        boardState.selectedPiece,
+        createSquare(row, col)
+      );
+      if (move) {
+        updateStateAfterMove(move, boardState.selectedPiece, row, col);
+      } else {
+        setBoardState({
+          ...boardState,
+          selectedPiece: undefined,
+        });
+      }
+    }
+  };
 
   const handlePromotionSelect = (
     square: Square | undefined,
@@ -50,13 +124,16 @@ export default function Board() {
       handleMove(promotionMove.piece, promotionMove.to, promotionMove);
     }
 
-    setShowPromotionPanel(false);
-    setPromotionSquare(undefined);
-    setSquaresToHide([]);
+    setBoardState({
+      ...boardState,
+      showPromotionPanel: false,
+      promotionSquare: undefined,
+      squaresToHide: [],
+    });
   };
 
   const isSquareToHide = (square: Square) => {
-    return squaresToHide.find(
+    return boardState.squaresToHide.find(
       (s) => s.row === square.row && s.col === square.col
     );
   };
@@ -78,12 +155,22 @@ export default function Board() {
           currentPlayerMoves.filter((move) => move.piece.id === piece.id);
         moves &&
           moves.forEach((move) => {
-            setLegalMoveSquares((prevState) => [...prevState, move]);
+            setBoardState((prevState) => ({
+              ...prevState,
+              legalMoveSquares: [...prevState.legalMoveSquares, move],
+            }));
           });
       },
       onDrop({ source, location }) {
-        setLegalMoveSquares([]);
-        if (showPromotionPanel) setShowPromotionPanel(false);
+        setBoardState({
+          ...boardState,
+          legalMoveSquares: [],
+        });
+        if (boardState.showPromotionPanel)
+          setBoardState({
+            ...boardState,
+            showPromotionPanel: false,
+          });
         const destination = location.current.dropTargets[0];
         if (!destination) {
           return;
@@ -101,34 +188,27 @@ export default function Board() {
             piece,
             createSquare(destinationLocation[0], destinationLocation[1])
           );
-          if (move && move.type === MoveType.PROMO) {
-            setShowPromotionPanel(true);
-            setPromotionSquare(move.to);
-            setPromotionColor(move.piece.color);
-            setPromotingPawn(move.piece);
-            setSquaresToHide(
-              getSquaresToHideDuringPromotion(move.to, move.piece.color)
-            );
-          } else if (move && move.type !== MoveType.PROMO) {
-            handleMove(
+          if (move) {
+            updateStateAfterMove(
+              move,
               piece,
-              createSquare(destinationLocation[0], destinationLocation[1])
+              destinationLocation[0],
+              destinationLocation[1]
             );
-            setPromotionColor(undefined);
-            setPromotionSquare(undefined);
-            setPromotingPawn(undefined);
           }
         }
       },
     });
   }, [
     board,
+    boardState,
     handleMove,
+    updateStateAfterMove,
     playerCanMove,
     currentPlayerMoves,
-    promotionColor,
-    promotionSquare,
-    showPromotionPanel,
+    boardState.promotionColor,
+    boardState.promotionSquare,
+    boardState.showPromotionPanel,
   ]);
 
   if (!board) {
@@ -136,13 +216,16 @@ export default function Board() {
   }
 
   return (
-    <div className="relative grid grid-cols-8 w-[90vmin] h-[90vmin] lg:w-[70vmin] lg:h-[70vmin] touch-none">
-      {showPromotionPanel && (
-        <div className="absolute top-0 left-0 w-[90vmin] h-[90vmin] bg-black bg-opacity-20 z-10 lg:w-[70vmin] lg:h-[70vmin]">
+    <div
+      id="chessboard"
+      className="relative grid grid-cols-8 w-[90vmin] h-[90vmin] lg:w-[70vmin] lg:h-[70vmin] touch-none"
+    >
+      {boardState.showPromotionPanel && (
+        <div className="absolute top-0 left-0 w-[90vmin] h-[90vmin] bg-black bg-opacity-20 z-20 lg:w-[70vmin] lg:h-[70vmin]">
           <PromotionPanel
-            square={promotionSquare}
-            promotingPawn={promotingPawn}
-            color={promotionColor}
+            square={boardState.promotionSquare}
+            promotingPawn={boardState.promotingPawn}
+            color={boardState.promotionColor}
             onPromotionSelect={handlePromotionSelect}
           />
         </div>
@@ -152,7 +235,8 @@ export default function Board() {
           <ChessSquare
             key={`${rowIndex}-${colIndex}`}
             square={[rowIndex, colIndex]}
-            legalMoveSquares={legalMoveSquares}
+            legalMoveSquares={boardState.legalMoveSquares}
+            onSquareClick={handlePieceSelection}
           >
             {square.piece &&
               square.piece.isAlive &&

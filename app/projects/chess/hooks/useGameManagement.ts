@@ -22,7 +22,11 @@ import {
   isAttackedByOpponent,
   setupPieces,
   isValidCastlingMove,
-  getMovementStrategyFromType,
+  executeStandardMove,
+  executeCastlingMove,
+  executeEnPassantMove,
+  executePromoMove,
+  isKingInCheck,
 } from "../utils";
 
 export const useGameManagement = (): GameStateContext => {
@@ -35,6 +39,8 @@ export const useGameManagement = (): GameStateContext => {
     piecesByPlayer: new Map<Player, Piece[]>(),
     currentPlayerMoves: [],
     capturedPieces: [],
+    isKingInCheck: false,
+    kingSquare: undefined,
     currentPlayerIndex: 0,
     moveHistory: [],
     undoneMoves: [],
@@ -46,22 +52,16 @@ export const useGameManagement = (): GameStateContext => {
   const player2 = gameState.players[1];
 
   const executeMove = useCallback(
-    async (
+    (
       move: Move,
       piecesByPlayerState: Map<Player, Piece[]>,
       boardState: Square[][]
     ) => {
       switch (move.type) {
         case MoveType.STNDRD:
-          const updatedPiece = {
-            ...move.piece,
-            currentSquare: move.to,
-            hasMoved: true,
-          };
-          boardState[move.from.row][move.from.col].piece = undefined;
           const capturedPiece = boardState[move.to.row][move.to.col].piece;
           if (capturedPiece) {
-            // might mess with genLegalMoves
+            // might mess with gen legal moves ... maybe pass in state?
             setGameState((prevState) => ({
               ...prevState,
               capturedPieces: [...prevState.capturedPieces, capturedPiece],
@@ -69,78 +69,47 @@ export const useGameManagement = (): GameStateContext => {
             capturedPiece.isAlive = false;
             boardState[move.to.row][move.to.col].piece = undefined;
           }
-
-          // add captured piece to updatePlayerPieces
-          boardState[move.to.row][move.to.col].piece = updatedPiece;
-          updatePlayerPieces(piecesByPlayerState, move, [updatedPiece]);
+          const standardPiecesToUpdate = executeStandardMove(
+            move,
+            boardState,
+            capturedPiece
+          );
+          if (standardPiecesToUpdate) {
+            updatePlayerPieces(piecesByPlayerState, standardPiecesToUpdate);
+          }
           break;
 
         case MoveType.CASTLE:
-          const castlingMove = move as CastlingMove;
-          const updatedKing = {
-            ...castlingMove.piece,
-            currentSquare: castlingMove.kingTo,
-            hasMoved: true,
-          };
-          const updatedRook = {
-            ...castlingMove.rook,
-            currentSquare: castlingMove.rookTo,
-            hasMoved: true,
-          };
-
-          boardState[castlingMove.kingFrom.row][
-            castlingMove.kingFrom.col
-          ].piece = undefined;
-          boardState[castlingMove.rookFrom.row][
-            castlingMove.rookFrom.col
-          ].piece = undefined;
-
-          boardState[castlingMove.kingTo.row][castlingMove.kingTo.col].piece =
-            updatedKing;
-          boardState[castlingMove.rookTo.row][castlingMove.rookTo.col].piece =
-            updatedRook;
-          updatePlayerPieces(piecesByPlayerState, move, [
-            updatedKing,
-            updatedRook,
-          ]);
+          const castlingPiecesToUpdate = executeCastlingMove(move, boardState);
+          updatePlayerPieces(piecesByPlayerState, castlingPiecesToUpdate);
           break;
         case MoveType.EP:
           const enPassantMove = move as EnPassantMove;
-          const updatedPawn = {
-            ...enPassantMove.piece,
-            currentSquare: enPassantMove.to,
-          };
+          const epCapturedPieceSquare = enPassantMove.capturedPieceSquare;
           const epCapturedPiece =
-            enPassantMove.capturedPiece &&
+            boardState[epCapturedPieceSquare.row][epCapturedPieceSquare.col]
+              .piece;
+          if (epCapturedPiece) {
+            // might mess with genLegalMoves
+            setGameState((prevState) => ({
+              ...prevState,
+              capturedPieces: [...prevState.capturedPieces, epCapturedPiece],
+            }));
+            epCapturedPiece.isAlive = false;
             boardState[enPassantMove.capturedPieceSquare.row][
               enPassantMove.capturedPieceSquare.col
-            ].piece;
-
-          epCapturedPiece && (epCapturedPiece.isAlive = false);
-          boardState[enPassantMove.capturedPieceSquare.row][
-            enPassantMove.capturedPieceSquare.col
-          ].piece = undefined;
-
-          boardState[enPassantMove.from.row][enPassantMove.from.col].piece =
-            undefined;
-          boardState[enPassantMove.to.row][enPassantMove.to.col].piece =
-            updatedPawn;
-          // add captured piece to updatePlayerPieces
-          updatePlayerPieces(piecesByPlayerState, move, [updatedPawn]);
+            ].piece = undefined;
+          }
+          const enPassantPiecesToUpdate = executeEnPassantMove(
+            move,
+            boardState,
+            epCapturedPiece
+          );
+          if (enPassantPiecesToUpdate) {
+            updatePlayerPieces(piecesByPlayerState, enPassantPiecesToUpdate);
+          }
           break;
         case MoveType.PROMO:
-          const promotionMove = move as PromotionMove;
-          const moveStrat = getMovementStrategyFromType(
-            promotionMove.promotionType
-          );
-          const promotedPawn = moveStrat && {
-            ...promotionMove.piece,
-            currentSquare: promotionMove.to,
-            type: promotionMove.promotionType,
-            movementStrategy: moveStrat,
-          };
-          boardState[promotionMove.from.row][promotionMove.from.col].piece =
-            undefined;
           const capturedPiecePromo = boardState[move.to.row][move.to.col].piece;
           if (capturedPiecePromo) {
             // might mess with genLegalMoves
@@ -151,11 +120,14 @@ export const useGameManagement = (): GameStateContext => {
             capturedPiecePromo.isAlive = false;
             boardState[move.to.row][move.to.col].piece = undefined;
           }
-          boardState[promotionMove.to.row][promotionMove.to.col].piece =
-            promotedPawn;
-          // add captured piece to updatePlayerPieces
-          promotedPawn &&
-            updatePlayerPieces(piecesByPlayerState, move, [promotedPawn]);
+          const promoPiecesToUpdate = executePromoMove(
+            move,
+            boardState,
+            capturedPiecePromo
+          );
+          if (promoPiecesToUpdate) {
+            updatePlayerPieces(piecesByPlayerState, promoPiecesToUpdate);
+          }
           break;
       }
       if (move.piece.type === PieceType.PAWN || move.isCapture) {
@@ -211,7 +183,7 @@ export const useGameManagement = (): GameStateContext => {
       const legalMoves: Move[] = [];
 
       moves.forEach((move) => {
-        // can move this outside once i make undoMove
+        // can move this outside once i make undoMove take state as a param
         const { copiedBoard, copiedPiecesByPlayer } = copyBoard(
           gameState.board
         );
@@ -252,6 +224,19 @@ export const useGameManagement = (): GameStateContext => {
           ) {
             legalMoves.push(move);
           }
+          if (isKingInCheck(opponentMoves)) {
+            setGameState((prevState) => ({
+              ...prevState,
+              isKingInCheck: true,
+              kingSquare: playersKing?.currentSquare,
+            }));
+          } else {
+            setGameState((prevState) => ({
+              ...prevState,
+              isKingInCheck: false,
+              kingSquare: undefined,
+            }));
+          }
         }
       });
       return legalMoves;
@@ -266,27 +251,22 @@ export const useGameManagement = (): GameStateContext => {
   );
 
   const switchPlayer = useCallback(() => {
-    setGameState((prevState) => {
-      const newCurrentPlayerIndex = 1 - prevState.currentPlayerIndex;
-
-      return {
-        ...prevState,
-        currentPlayerIndex: newCurrentPlayerIndex,
-      };
-    });
+    setGameState((prevState) => ({
+      ...prevState,
+      currentPlayerIndex: 1 - prevState.currentPlayerIndex,
+    }));
   }, []);
 
   const updatePlayerPieces = (
     piecesByPlayer: Map<Player, Piece[]>,
-    move: Move,
     updatedPieces: Piece[]
   ) => {
     updatedPieces.forEach((updatedPiece) => {
-      const playerPieces = piecesByPlayer.get(move.piece.player) || [];
+      const playerPieces = piecesByPlayer.get(updatedPiece.player) || [];
       const updatedPlayerPieces = playerPieces.map((piece) =>
         piece.id === updatedPiece.id ? updatedPiece : piece
       );
-      piecesByPlayer.set(move.piece.player, updatedPlayerPieces);
+      piecesByPlayer.set(updatedPiece.player, updatedPlayerPieces);
     });
   };
 
@@ -340,21 +320,6 @@ export const useGameManagement = (): GameStateContext => {
       piecesByPlayer: newPiecesByPlayer,
     }));
   }, [player1, player2, gameState.board]);
-  useEffect(() => {
-    const currentPlayerMoves = generateLegalMoves(
-      getPlayerMoves(player1, gameState.piecesByPlayer, gameState.board)
-    );
-    setGameState((prevState) => ({
-      ...prevState,
-      currentPlayerMoves: currentPlayerMoves,
-    }));
-  }, [
-    gameState.board,
-    gameState.piecesByPlayer,
-    generateLegalMoves,
-    getPlayerMoves,
-    player1,
-  ]);
 
   const playerCanMove = useCallback(
     (
@@ -408,24 +373,25 @@ export const useGameManagement = (): GameStateContext => {
     },
     [gameState, executeMove, addMoveHistory, switchPlayer]
   );
-
   useEffect(() => {
     const currentPlayer = gameState.players[gameState.currentPlayerIndex];
-    const currentPlayerMoves = generateLegalMoves(
-      getPlayerMoves(currentPlayer, gameState.piecesByPlayer, gameState.board)
+    const rawMoves = getPlayerMoves(
+      currentPlayer,
+      gameState.piecesByPlayer,
+      gameState.board
     );
-
+    const currentPlayerMoves = generateLegalMoves(rawMoves);
     setGameState((prevState) => ({
       ...prevState,
       currentPlayerMoves: currentPlayerMoves,
     }));
   }, [
-    gameState.currentPlayerIndex,
-    gameState.board,
-    gameState.piecesByPlayer,
-    gameState.players,
     generateLegalMoves,
     getPlayerMoves,
+    gameState.board,
+    gameState.currentPlayerIndex,
+    gameState.piecesByPlayer,
+    gameState.players,
   ]);
 
   const handleMove = useCallback(
@@ -459,9 +425,12 @@ export const useGameManagement = (): GameStateContext => {
                 : square.piece,
           }))
         );
-        updatePlayerPieces(gameState.piecesByPlayer, lastMove, [
-          lastMove.piece,
-        ]);
+        const piecesToUpdate = [lastMove.piece];
+        if (lastMove.capturedPiece) {
+          lastMove.capturedPiece.isAlive = true;
+          piecesToUpdate.push(lastMove.capturedPiece);
+        }
+        updatePlayerPieces(gameState.piecesByPlayer, piecesToUpdate);
         const updatedMoveHistory = prevState.moveHistory.slice(0, -1);
         const updatedCapturedPieces = prevState.capturedPieces.slice(0, -1);
         return {
@@ -474,7 +443,7 @@ export const useGameManagement = (): GameStateContext => {
       });
       switchPlayer();
     }
-  }, [switchPlayer, gameState.moveHistory]);
+  }, [switchPlayer, gameState.moveHistory, gameState.piecesByPlayer]);
 
   const redoMove = useCallback(() => {
     if (gameState.undoneMoves.length > 0) {
@@ -485,7 +454,14 @@ export const useGameManagement = (): GameStateContext => {
       }
       switchPlayer();
     }
-  }, [gameState, addMoveHistory, executeMove, switchPlayer]);
+  }, [
+    gameState.undoneMoves,
+    gameState.piecesByPlayer,
+    gameState.board,
+    addMoveHistory,
+    executeMove,
+    switchPlayer,
+  ]);
 
   /*   const getEnPassantTarget = useCallback(() => {
     const move =

@@ -10,6 +10,7 @@ import {
 } from "../types";
 import { isEmpty, isAttackedByOpponent } from "./board";
 import { createSquare } from "./square";
+import { getMovementStrategyFromType } from "./piece";
 
 export const createStandardMove = (
   piece: Piece,
@@ -76,6 +77,101 @@ export const createPromotionMove = (
   promotionType: promotionType,
   capturedPiece: capturedPiece,
 });
+
+export const executeStandardMove = (
+  move: Move,
+  boardState: Square[][],
+  capturedPiece: Piece | undefined
+): Piece[] | undefined => {
+  const updatedPiece = {
+    ...move.piece,
+    currentSquare: move.to,
+    hasMoved: true,
+  };
+  boardState[move.from.row][move.from.col].piece = undefined;
+  if (updatedPiece) {
+    boardState[move.to.row][move.to.col].piece = updatedPiece;
+    const piecesToUpdate: Piece[] = [updatedPiece];
+    if (capturedPiece) {
+      piecesToUpdate.push(capturedPiece);
+    }
+    return piecesToUpdate;
+  }
+};
+
+export const executeCastlingMove = (
+  move: Move,
+  boardState: Square[][]
+): Piece[] => {
+  const castlingMove = move as CastlingMove;
+  const updatedKing = {
+    ...castlingMove.piece,
+    currentSquare: castlingMove.kingTo,
+    hasMoved: true,
+  };
+  const updatedRook = {
+    ...castlingMove.rook,
+    currentSquare: castlingMove.rookTo,
+    hasMoved: true,
+  };
+
+  boardState[castlingMove.kingFrom.row][castlingMove.kingFrom.col].piece =
+    undefined;
+  boardState[castlingMove.rookFrom.row][castlingMove.rookFrom.col].piece =
+    undefined;
+
+  boardState[castlingMove.kingTo.row][castlingMove.kingTo.col].piece =
+    updatedKing;
+  boardState[castlingMove.rookTo.row][castlingMove.rookTo.col].piece =
+    updatedRook;
+
+  return [updatedKing, updatedRook];
+};
+
+export const executeEnPassantMove = (
+  move: Move,
+  boardState: Square[][],
+  epCapturedPiece: Piece | undefined
+): Piece[] | undefined => {
+  const enPassantMove = move as EnPassantMove;
+  const updatedPawn = {
+    ...enPassantMove.piece,
+    currentSquare: enPassantMove.to,
+  };
+  boardState[enPassantMove.from.row][enPassantMove.from.col].piece = undefined;
+  if (updatedPawn) {
+    boardState[move.to.row][move.to.col].piece = updatedPawn;
+    const piecesToUpdate: Piece[] = [updatedPawn];
+    if (epCapturedPiece) {
+      piecesToUpdate.push(epCapturedPiece);
+    }
+    return piecesToUpdate;
+  }
+};
+
+export const executePromoMove = (
+  move: Move,
+  boardState: Square[][],
+  capturedPiecePromo: Piece | undefined
+): Piece[] | undefined => {
+  const promotionMove = move as PromotionMove;
+  const moveStrat = getMovementStrategyFromType(promotionMove.promotionType);
+  const promotedPawn = moveStrat && {
+    ...promotionMove.piece,
+    currentSquare: promotionMove.to,
+    type: promotionMove.promotionType,
+    movementStrategy: moveStrat,
+  };
+  boardState[promotionMove.from.row][promotionMove.from.col].piece = undefined;
+  if (promotedPawn) {
+    boardState[move.to.row][move.to.col].piece = promotedPawn;
+    const piecesToUpdate: Piece[] = [promotedPawn];
+    if (capturedPiecePromo) {
+      piecesToUpdate.push(capturedPiecePromo);
+    }
+    return piecesToUpdate;
+  }
+};
 
 export const isValidCastlingMove = (
   move: CastlingMove,

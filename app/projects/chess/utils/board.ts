@@ -86,6 +86,12 @@ export const isAttackedByOpponent = (
   });
 };
 
+export const isKingInCheck = (opponentMoves: Move[]) => {
+  return opponentMoves.some((move) => {
+    return move.capturedPiece && move.capturedPiece.type === PieceType.KING;
+  });
+};
+
 export const copyBoard = (board: Square[][]) => {
   const copiedBoard = board.map((row) =>
     row.map((square) => ({

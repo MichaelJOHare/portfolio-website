@@ -9,7 +9,13 @@ export type Square = {
 export type SquareProps = {
   square: number[];
   legalMoveSquares: Move[];
+  onSquareClick: (row: number, col: number) => void;
   children: ReactNode;
+};
+
+export type HighlightedSquares = {
+  drawnOnSquares: Square[];
+  stockfishBestMoveSquares: Square[];
 };
 
 export type Player = {
@@ -53,12 +59,24 @@ export type PieceSetup = {
   movementStrategy: MovementStrategy;
 };
 
+export interface BoardState {
+  legalMoveSquares: Move[];
+  showPromotionPanel: boolean;
+  promotionSquare: Square | undefined;
+  promotionColor: PlayerColor | undefined;
+  squaresToHide: Square[];
+  promotingPawn: Piece | undefined;
+  selectedPiece: Piece | undefined;
+}
+
 export interface GameState {
   board: Square[][];
   players: Player[];
   piecesByPlayer: Map<Player, Piece[]>;
   currentPlayerMoves: Move[];
   capturedPieces: Piece[];
+  isKingInCheck: boolean;
+  kingSquare: Square | undefined;
   currentPlayerIndex: number;
   moveHistory: Move[];
   undoneMoves: Move[];
@@ -73,6 +91,8 @@ export type GameStateContext = {
   players: Player[];
   currentPlayerIndex: number;
   currentPlayerMoves: Move[];
+  isKingInCheck: boolean;
+  kingSquare: Square | undefined;
   initializeBoard: () => void;
   playerCanMove: (
     piece: Piece,
@@ -87,6 +107,13 @@ export type GameStateContext = {
   undoMove: () => void;
   redoMove: () => void;
 };
+
+export interface ChessboardHighlighter {
+  highlightedSquares: HighlightedSquares;
+  onMouseDown: (e: MouseEvent) => void;
+  onMouseMove: (e: MouseEvent) => void;
+  onMouseUp: (e: MouseEvent) => void;
+}
 
 export enum MoveType {
   STNDRD = "Standard",

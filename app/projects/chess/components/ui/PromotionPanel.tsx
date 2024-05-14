@@ -31,9 +31,13 @@ export const PromotionPanel = ({
   );
 
   useEffect(() => {
-    window
-      .matchMedia("(min-width: 768px)")
-      .addEventListener("change", (e) => setMatches(e.matches));
+    const mediaQuery = window.matchMedia("(min-width: 768px)");
+    const handleChange = (e: MediaQueryListEvent) => setMatches(e.matches);
+
+    mediaQuery.addEventListener("change", handleChange);
+    return () => {
+      mediaQuery.removeEventListener("change", handleChange);
+    };
   }, []);
 
   const promotionPieces: PieceType[] =
@@ -61,9 +65,7 @@ export const PromotionPanel = ({
     square && color && calculatePromotionPanelPosition(square, color);
 
   return (
-    <div
-      className={`absolute w-full h-full flex flex-col backdrop-filter backdrop-blur-sm`}
-    >
+    <div className="absolute w-full h-full flex flex-col backdrop-filter backdrop-blur-sm z-20">
       {promotionPieces.map((type, index) => (
         <div
           key={index}

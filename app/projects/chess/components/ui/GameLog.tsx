@@ -1,11 +1,18 @@
 "use client";
 
 import { useGameContext } from "../../hooks/useGameContext";
-import { onMoveClick } from "../../utils/moveHistory";
+import { MoveType, PieceType, PlayerColor } from "../../types";
 
 export default function GameLog() {
-  const boardManagement = useGameContext();
-  const moves = boardManagement.moveHistory;
+  const { moveHistory, undoMove } = useGameContext();
+
+  const onMoveClick = (index: number) => {
+    const movesToUndo = moveHistory.length - index;
+    for (let i = 1; i < movesToUndo; i++) {
+      undoMove();
+    }
+  };
+
   return (
     <form className="h-full pb-2">
       <div className="h-full w-full flex flex-col border border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
@@ -58,26 +65,48 @@ export default function GameLog() {
         </div>
         <div className="h-full flex flex-col px-4 py-2 min-h-64 bg-white rounded-b-lg dark:bg-gray-800">
           <div className="h-full">
-            {/* need to make flex, use piece unicodes, disambiguate, etc. */}
-            <ul className="flex flex-wrap">
-              {moves.map((move, index) => {
+            {/* need to add capture/promo, disambiguate, etc. */}
+            <ul className="flex flex-wrap items-center">
+              {moveHistory.map((move, index) => {
                 const { from, to } = move;
                 const isEvenIndex = index % 2 === 0;
                 return (
                   <li
-                    className={`inline-block cursor-pointer ${
-                      isEvenIndex ? "ml-2 mr-1" : ""
+                    className={`inline-block cursor-pointer hover:bg-slate-600 ${
+                      isEvenIndex ? "ml-3 mr-1" : ""
                     } ${
-                      index === moves.length - 1
-                        ? "border-2 border-blue-600 bg-zinc-400"
+                      index === moveHistory.length - 1
+                        ? "border-2 border-spacing-0 border-blue-600 bg-zinc-400"
                         : ""
                     }`}
                     key={index}
                     onClick={() => onMoveClick(index)}
                   >
-                    {isEvenIndex && `${index + 1}. `}
-                    {String.fromCharCode(97 + to.col)}
-                    {8 - to.row}
+                    <span className="flex items-center">
+                      {isEvenIndex && (
+                        <span className="font-bold text-lg">
+                          {(index + 2) / 2}.{" "}
+                        </span>
+                      )}
+                      {move.type === MoveType.CASTLE &&
+                        (from.col - to.col > 0 ? "O-O-O" : "O-O")}
+                      {move.type === MoveType.STNDRD && (
+                        <>
+                          <span
+                            className={`relative text-3xl ${
+                              move.piece.color === PlayerColor.BLACK
+                                ? "text-zinc-600"
+                                : ""
+                            }`}
+                          >
+                            {move.piece.type !== PieceType.PAWN &&
+                              getPieceUnicode(move.piece.type)}
+                          </span>
+                          {String.fromCharCode(97 + to.col)}
+                          {8 - to.row}
+                        </>
+                      )}
+                    </span>
                   </li>
                 );
               })}
@@ -87,4 +116,19 @@ export default function GameLog() {
       </div>
     </form>
   );
+}
+
+function getPieceUnicode(type: PieceType) {
+  switch (type) {
+    case PieceType.KING:
+      return "♚";
+    case PieceType.QUEEN:
+      return "♛";
+    case PieceType.ROOK:
+      return "♜";
+    case PieceType.BISHOP:
+      return "♝";
+    case PieceType.KNIGHT:
+      return "♞";
+  }
 }

@@ -37,11 +37,19 @@ const Header = () => {
               {link.title}
             </Link>
           ))}
-        <SocialIcon
-          kind="pdf"
-          href="/assets/resume/Michael_O'Hare_Resume.pdf"
-          size={8}
-        />
+        <div className="group relative">
+          <SocialIcon
+            kind="pdf"
+            href="/assets/resume/Michael_O'Hare_Resume.pdf"
+            size={8}
+          />
+          <span
+            role="tooltip"
+            className="pointer-events-none absolute px-2 py-2 -top-7 -left-4 w-max opacity-0 transition-opacity group-hover:opacity-100 text-sm font-medium text-white duration-300 bg-gray-900 rounded-lg shadow-sm dark:bg-gray-800"
+          >
+            Resume
+          </span>
+        </div>
         <ThemeSwitcher />
         <MobileNav />
       </div>

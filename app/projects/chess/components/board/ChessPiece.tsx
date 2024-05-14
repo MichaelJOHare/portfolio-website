@@ -24,7 +24,6 @@ export const ChessPiece = ({
 
     const isDraggable = () => {
       const movingPiece = piece;
-      console.log(movingPiece);
       return (
         movingPiece && movingPiece.color === players[currentPlayerIndex].color
       );
@@ -47,7 +46,7 @@ export const ChessPiece = ({
         e.stopPropagation();
         e.nativeEvent.stopImmediatePropagation();
       }}
-      className="h-3/4"
+      className="h-3/4 z-10"
       style={{
         opacity: dragging ? 0.5 : 1,
         cursor: "grab",
