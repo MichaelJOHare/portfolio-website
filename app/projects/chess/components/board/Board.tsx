@@ -71,14 +71,14 @@ export default function Board() {
 
   const handlePieceSelection = (row: number, col: number) => {
     // clear highlights
-    setBoardState({
-      ...boardState,
+    setBoardState((prevState) => ({
+      ...prevState,
       legalMoveSquares: [],
       selectedPiece: undefined,
-    });
+    }));
     const piece = getPieceAt(board, row, col);
     if (piece && piece.color === players[currentPlayerIndex].color) {
-      setBoardState({ ...boardState, selectedPiece: piece });
+      setBoardState((prevState) => ({ ...prevState, selectedPiece: piece }));
       const moves = currentPlayerMoves.filter(
         (move) => move.piece.id === piece.id
       );
@@ -97,10 +97,10 @@ export default function Board() {
       if (move) {
         updateStateAfterMove(move, boardState.selectedPiece, row, col);
       } else {
-        setBoardState({
-          ...boardState,
+        setBoardState((prevState) => ({
+          ...prevState,
           selectedPiece: undefined,
-        });
+        }));
       }
     }
   };
@@ -124,12 +124,12 @@ export default function Board() {
       handleMove(promotionMove.piece, promotionMove.to, promotionMove);
     }
 
-    setBoardState({
-      ...boardState,
+    setBoardState((prevState) => ({
+      ...prevState,
       showPromotionPanel: false,
       promotionSquare: undefined,
       squaresToHide: [],
-    });
+    }));
   };
 
   const isSquareToHide = (square: Square) => {
@@ -258,7 +258,7 @@ export default function Board() {
 function getSquaresToHideDuringPromotion(square: Square, color: PlayerColor) {
   const squaresToHide = [];
   const increment = color === PlayerColor.WHITE ? 1 : -1;
-  for (let i = 1; i < 3; i++) {
+  for (let i = 1; i < 4; i++) {
     squaresToHide.push({ row: square.row + i * increment, col: square.col });
   }
   return squaresToHide;

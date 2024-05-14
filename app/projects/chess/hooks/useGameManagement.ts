@@ -55,7 +55,8 @@ export const useGameManagement = (): GameStateContext => {
     (
       move: Move,
       piecesByPlayerState: Map<Player, Piece[]>,
-      boardState: Square[][]
+      boardState: Square[][],
+      psuedoMove?: boolean
     ) => {
       switch (move.type) {
         case MoveType.STNDRD:
@@ -130,22 +131,24 @@ export const useGameManagement = (): GameStateContext => {
           }
           break;
       }
-      if (move.piece.type === PieceType.PAWN || move.isCapture) {
-        setGameState((prevState) => ({
-          ...prevState,
-          halfMoveClock: 0,
-        }));
-      } else {
-        setGameState((prevState) => ({
-          ...prevState,
-          halfMoveClock: prevState.halfMoveClock + 1,
-        }));
-      }
-      if (move.piece.color === PlayerColor.BLACK) {
-        setGameState((prevState) => ({
-          ...prevState,
-          fullMoveNumber: prevState.fullMoveNumber + 1,
-        }));
+      if (!psuedoMove) {
+        if (move.piece.type === PieceType.PAWN || move.isCapture) {
+          setGameState((prevState) => ({
+            ...prevState,
+            halfMoveClock: 0,
+          }));
+        } else {
+          setGameState((prevState) => ({
+            ...prevState,
+            halfMoveClock: prevState.halfMoveClock + 1,
+          }));
+        }
+        if (move.piece.color === PlayerColor.BLACK) {
+          setGameState((prevState) => ({
+            ...prevState,
+            fullMoveNumber: prevState.fullMoveNumber + 1,
+          }));
+        }
       }
     },
     []
@@ -204,7 +207,7 @@ export const useGameManagement = (): GameStateContext => {
             legalMoves.push(move);
           }
         } else {
-          executeMove(move, copiedPiecesByPlayer, copiedBoard);
+          executeMove(move, copiedPiecesByPlayer, copiedBoard, true);
           const playersPieces = copiedPiecesByPlayer.get(
             gameState.players[gameState.currentPlayerIndex]
           );
@@ -462,21 +465,6 @@ export const useGameManagement = (): GameStateContext => {
     executeMove,
     switchPlayer,
   ]);
-
-  /*   const getEnPassantTarget = useCallback(() => {
-    const move =
-      gameState.moveHistory.length > 0
-        ? gameState.moveHistory[gameState.moveHistory.length - 1]
-        : null;
-    if (
-      move &&
-      move.piece.type === PieceType.PAWN &&
-      Math.abs(move.from.row - move.to.row) === 2
-    ) {
-      return createSquare((move.from.row + move.to.row) / 2, move.from.col);
-    }
-    return null;
-  }, [gameState.moveHistory]); */
 
   /*     const clearBoard = useCallback(() => {
       setGameState((prevState) => ({

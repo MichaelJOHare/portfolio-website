@@ -1,10 +1,26 @@
 "use client";
 
+import { useState } from "react";
 import { useGameContext } from "../../hooks/useGameContext";
 import { MoveType, PieceType, PlayerColor } from "../../types";
+import { squareToString } from "../../utils";
+import { toFEN } from "../../utils/FEN";
 
 export default function GameLog() {
-  const { moveHistory, undoMove } = useGameContext();
+  const {
+    board,
+    players,
+    currentPlayerIndex,
+    halfMoveClock,
+    fullMoveNumber,
+    moveHistory,
+    undoMove,
+  } = useGameContext();
+  const [showFenTextArea, setShowFenTextArea] = useState(false);
+
+  const toggleFenTextArea = () => {
+    setShowFenTextArea(!showFenTextArea);
+  };
 
   const onMoveClick = (index: number) => {
     const movesToUndo = moveHistory.length - index;
@@ -22,6 +38,7 @@ export default function GameLog() {
               <button
                 type="button"
                 className="p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
+                onClick={toggleFenTextArea}
               >
                 <svg
                   className="w-10 h-10"
@@ -102,8 +119,7 @@ export default function GameLog() {
                             {move.piece.type !== PieceType.PAWN &&
                               getPieceUnicode(move.piece.type)}
                           </span>
-                          {String.fromCharCode(97 + to.col)}
-                          {8 - to.row}
+                          {squareToString(to)}
                         </>
                       )}
                     </span>
@@ -113,6 +129,21 @@ export default function GameLog() {
             </ul>
           </div>
         </div>
+        {showFenTextArea && (
+          <textarea
+            className="mt-2 p-2 border border-gray-300 rounded"
+            rows={5}
+            defaultValue={toFEN(
+              board,
+              players,
+              currentPlayerIndex,
+              moveHistory,
+              halfMoveClock,
+              fullMoveNumber
+            )}
+            /* add on move -> update fen, on user change -> update board/state */
+          />
+        )}
       </div>
     </form>
   );

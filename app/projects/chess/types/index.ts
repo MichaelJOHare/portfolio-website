@@ -93,6 +93,8 @@ export type GameStateContext = {
   currentPlayerMoves: Move[];
   isKingInCheck: boolean;
   kingSquare: Square | undefined;
+  halfMoveClock: number;
+  fullMoveNumber: number;
   initializeBoard: () => void;
   playerCanMove: (
     piece: Piece,
