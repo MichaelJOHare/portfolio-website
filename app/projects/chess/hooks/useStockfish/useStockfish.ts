@@ -113,7 +113,7 @@ export const useStockfish = ({
       }
       console.debug("engine", line);
     },
-    [commandEvaler]
+    [commandEvaler, board]
   );
 
   const handleEvalerMessage = useCallback((event: MessageEvent) => {
