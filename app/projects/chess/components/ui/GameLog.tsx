@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useGameContext } from "../../hooks/useGameContext";
 import { MoveType, PieceType, PlayerColor } from "../../types";
-import { squareToString } from "../../utils";
+import { squareToString, getPieceUnicode } from "../../utils";
 import { toFEN } from "../../utils/FEN";
 
 export type GameLogProps = {
@@ -190,19 +190,4 @@ export default function GameLog({
       </div>
     </form>
   );
-}
-
-function getPieceUnicode(type: PieceType) {
-  switch (type) {
-    case PieceType.KING:
-      return "♚";
-    case PieceType.QUEEN:
-      return "♛";
-    case PieceType.ROOK:
-      return "♜";
-    case PieceType.BISHOP:
-      return "♝";
-    case PieceType.KNIGHT:
-      return "♞";
-  }
 }

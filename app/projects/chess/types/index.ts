@@ -1,5 +1,4 @@
 import { ReactNode } from "react";
-import { ChessEngineMove } from "../hooks/useStockfish";
 
 export type Square = {
   row: number;
@@ -12,6 +11,15 @@ export type SquareProps = {
   legalMoveSquares: Move[];
   onSquareClick: (row: number, col: number) => void;
   children: ReactNode;
+};
+
+export type BoardProps = {
+  isStockfishClassicalChecked: boolean;
+  isStockfishNnueChecked: boolean;
+  squaresToHide: Square[];
+  showPromotionPanel: boolean;
+  handleSquaresToHide: (squares: Square[]) => void;
+  handleShowPromotionPanel: (isShown: boolean) => void;
 };
 
 export type HighlightedSquares = {
@@ -112,10 +120,9 @@ export type GameStateContext = {
 };
 
 export interface ChessboardHighlighter {
-  highlightedSquares: HighlightedSquares;
-  onMouseDown: (e: MouseEvent) => void;
-  onMouseMove: (e: MouseEvent) => void;
-  onMouseUp: (e: MouseEvent) => void;
+  onMouseDown: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
+  onMouseMove: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
+  onMouseUp: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
 }
 
 export enum MoveType {

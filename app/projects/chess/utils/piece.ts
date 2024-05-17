@@ -97,3 +97,18 @@ export function isPieceType(token: unknown): token is PieceType {
       token === PieceType.KING)
   );
 }
+
+export function getPieceUnicode(type: PieceType) {
+  switch (type) {
+    case PieceType.KING:
+      return "♚";
+    case PieceType.QUEEN:
+      return "♛";
+    case PieceType.ROOK:
+      return "♜";
+    case PieceType.BISHOP:
+      return "♝";
+    case PieceType.KNIGHT:
+      return "♞";
+  }
+}

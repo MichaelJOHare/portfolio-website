@@ -6,16 +6,12 @@ import { ChessSquare } from "./ChessSquare";
 import { ChessPiece } from "./ChessPiece";
 import { PromotionPanel } from "../ui/PromotionPanel";
 import { useGameContext } from "../../hooks/useGameContext";
-import { AnalysisType, useStockfish } from "../../hooks/useStockfish";
 import {
   isSquare,
   getPieceAt,
   createSquare,
   createPromotionMove,
   getSquaresToHideDuringPromotion,
-  INITIAL_FEN,
-  toFEN,
-  getSquareFromNotation,
 } from "../../utils";
 import {
   Move,
@@ -24,17 +20,11 @@ import {
   PieceType,
   Square,
   BoardState,
+  BoardProps,
 } from "../../types";
 import Arrow from "../ui/Arrow";
-
-export type BoardProps = {
-  isStockfishClassicalChecked: boolean;
-  isStockfishNnueChecked: boolean;
-  squaresToHide: Square[];
-  showPromotionPanel: boolean;
-  handleSquaresToHide: (squares: Square[]) => void;
-  handleShowPromotionPanel: (isShown: boolean) => void;
-};
+import { useAnalysis } from "../../hooks/useAnalysis";
+import { useChessboardHighlighter } from "../../hooks/useChessboardHighlighter";
 
 export default function Board({
   isStockfishClassicalChecked,
@@ -44,18 +34,6 @@ export default function Board({
   handleSquaresToHide,
   handleShowPromotionPanel,
 }: BoardProps) {
-  const {
-    board,
-    currentPlayerMoves,
-    players,
-    currentPlayerIndex,
-    moveHistory,
-    halfMoveClock,
-    fullMoveNumber,
-    handleMove,
-    playerCanMove,
-  } = useGameContext();
-
   const [boardState, setBoardState] = useState<BoardState>({
     legalMoveSquares: [],
     engineInitialized: false,
@@ -65,106 +43,22 @@ export default function Board({
     promotingPawn: undefined,
     selectedPiece: undefined,
   });
-  const [arrowCoordinates, setArrowCoordinates] = useState({
-    x1: 0,
-    x2: 0,
-    y1: 0,
-    y2: 0,
-  });
-
-  const analysisType = isStockfishClassicalChecked
-    ? AnalysisType.CLASSICAL
-    : isStockfishNnueChecked
-    ? AnalysisType.NNUE
-    : null;
   const {
-    move: engineMove,
-    findMove,
-    initializeEngine,
-    cleanUpEngine,
-  } = useStockfish({
-    analysisType,
-    skillLevel: 20, // get from modal
-    filepath: "/stockfish/stockfish-nnue-16.js",
-  });
-
-  const generateCurrentFen = useCallback(() => {
-    console.log(
-      "generateCurrentFen",
-      currentPlayerIndex,
-      players[currentPlayerIndex]
-    );
-    return toFEN(
-      board,
-      players,
-      currentPlayerIndex,
-      moveHistory,
-      halfMoveClock,
-      fullMoveNumber
-    );
-  }, [
     board,
-    currentPlayerIndex,
-    fullMoveNumber,
-    halfMoveClock,
-    moveHistory,
+    currentPlayerMoves,
     players,
-  ]);
-
-  function getArrowFromBestMove() {
-    if (engineMove) {
-      const from = getSquareFromNotation(engineMove.from);
-      const to = getSquareFromNotation(engineMove.to);
-      setArrowCoordinates({
-        x1: from.col * 12.5 + 6.25,
-        y1: from.row * 12.5 + 6.25,
-        x2: to.col * 12.5 + 6.25,
-        y2: to.row * 12.5 + 6.25,
-      });
-    }
-  }
-
-  useEffect(() => {
-    if (analysisType && !boardState.engineInitialized) {
-      initializeEngine();
-      setBoardState((prevState) => ({
-        ...prevState,
-        engineInitialized: true,
-      }));
-    } else if (!analysisType && boardState.engineInitialized) {
-      cleanUpEngine();
-      setBoardState((prevState) => ({
-        ...prevState,
-        engineInitialized: false,
-      }));
-    }
-  }, [
-    analysisType,
-    boardState.engineInitialized,
-    initializeEngine,
-    cleanUpEngine,
-  ]);
-  useEffect(() => {
-    setBoardState((prevState) => {
-      if (!prevState.engineRunning && prevState.engineInitialized) {
-        findMove(generateCurrentFen());
-        return {
-          ...prevState,
-          engineRunning: true,
-        };
-      }
-      return prevState;
-    });
-  }, [generateCurrentFen, boardState.engineInitialized, findMove]);
-  useEffect(() => {
-    if (boardState.engineRunning && engineMove) {
-      setBoardState((prevState) => ({
-        ...prevState,
-        engineRunning: false,
-      }));
-      getArrowFromBestMove();
-    }
-  }, [engineMove, boardState.engineRunning]);
+    currentPlayerIndex,
+    handleMove,
+    playerCanMove,
+  } = useGameContext();
+  const { arrowCoordinates, setArrowCoordinates } = useAnalysis(
+    isStockfishClassicalChecked,
+    isStockfishNnueChecked,
+    boardState,
+    setBoardState
+  ); // if move during analysis -> stop -> restart on current fen
+  const { onMouseDown, onMouseMove, onMouseUp } =
+    useChessboardHighlighter(setArrowCoordinates);
 
   const updateStateAfterMove = useCallback(
     (move: Move, piece: Piece, row: number, col: number) => {
@@ -191,12 +85,7 @@ export default function Board({
         setArrowCoordinates({ x1: 0, y1: 0, x2: 0, y2: 0 });
       }
     },
-    [
-      handleMove,
-      handleShowPromotionPanel,
-      handleSquaresToHide,
-      generateCurrentFen,
-    ]
+    [handleMove, handleShowPromotionPanel, handleSquaresToHide]
   );
 
   const handlePieceSelection = (row: number, col: number) => {
@@ -346,6 +235,15 @@ export default function Board({
     <div
       id="chessboard"
       className="relative grid grid-cols-8 w-[90vmin] h-[90vmin] lg:w-[70vmin] lg:h-[70vmin] touch-none"
+      onMouseDown={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+        onMouseDown(e)
+      }
+      onMouseMove={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+        onMouseMove(e)
+      }
+      onMouseUp={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+        onMouseUp(e)
+      }
     >
       {showPromotionPanel && (
         <div className="absolute top-0 left-0 w-[90vmin] h-[90vmin] bg-black bg-opacity-20 z-20 lg:w-[70vmin] lg:h-[70vmin]">
