@@ -2,6 +2,8 @@ import { Square, PlayerColor, PieceType, Player, Move } from "../types";
 import { getPieceAt } from "./board";
 import { createSquare, squareToString } from "./square";
 
+export const INITIAL_FEN = `rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1`;
+
 export function toFEN(
   board: Square[][],
   players: Player[],

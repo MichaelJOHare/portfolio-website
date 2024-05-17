@@ -33,6 +33,7 @@ export const ChessSquare = ({
     onSquareClick(row, col);
   };
 
+  // add previous move highlights
   const getColor = (
     state: HoveredState,
     isDark: boolean,

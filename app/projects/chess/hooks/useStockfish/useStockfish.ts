@@ -7,15 +7,7 @@ import {
   IS_SYSTEM_MESSAGE,
 } from "./messages";
 import { useEngine } from "./useEngine";
-import {
-  calculateDepth,
-  calculateErrorProbability,
-  calculateMaxError,
-  formatMoveString,
-  formatTimeString,
-} from "./utils";
-import { Move, MoveType, Square } from "../../types";
-import { getPieceAt } from "../../utils";
+import { calculateDepth, calculateThreadsForNNUE } from "./utils";
 
 export enum ChessEngineStatus {
   Loading,
@@ -24,27 +16,36 @@ export enum ChessEngineStatus {
   Running,
 }
 
-export interface UseStockfishOptions {
-  board: Square[][];
-  duration: number;
-  increment: number;
-  skillLevel?: number;
-  filepath?: string;
+export enum AnalysisType {
+  CLASSICAL = "classical",
+  NNUE = "NNUE",
 }
 
-export type ChessEngineMove = Move | null;
+export interface UseStockfishOptions {
+  analysisType: AnalysisType | null;
+  filepath: string;
+  skillLevel?: number;
+}
+
+export type ChessEngineMove = {
+  from: string;
+  to: string;
+  promotion?: string;
+} | null;
 
 export const useStockfish = ({
-  board,
-  duration,
-  increment,
+  analysisType,
   skillLevel = 20,
-  filepath = "stockfish.js",
+  filepath,
 }: UseStockfishOptions) => {
-  const { setHandler: setEngineHandler, command: commandEngine } =
-    useEngine(filepath);
-  const { setHandler: setEvalerHandler, command: commandEvaler } =
-    useEngine(filepath);
+  const {
+    initializeWorker,
+    setHandler: setEngineHandler,
+    command: commandEngine,
+    terminateEngine,
+  } = useEngine(filepath);
+  /*   const { setHandler: setEvalerHandler, command: commandEvaler } =
+    useEngine(filepath); */
   const [status, setStatus] = useState(ChessEngineStatus.Loading);
   const [depth, setDepth] = useState<number | null>(null);
   const [move, setMove] = useState<ChessEngineMove>(null);
@@ -54,107 +55,100 @@ export const useStockfish = ({
   const setSkillLevel = useCallback(
     (skillLevel: number) => {
       const depth = calculateDepth(skillLevel);
-      const errorProbability = calculateErrorProbability(skillLevel);
-      const maxError = calculateMaxError(skillLevel);
       setDepth(depth);
       commandEngine(`setoption name Skill Level value ${skillLevel}`);
+    },
+    [commandEngine]
+  );
+
+  const setAnalysisType = useCallback(
+    (analysisType: AnalysisType | null) => {
+      const threads =
+        analysisType === AnalysisType.NNUE ? calculateThreadsForNNUE() : 1;
+      commandEngine(`setoption name Threads value ${threads}`);
       commandEngine(
-        `setoption name Skill Level Maximum Error value ${maxError}`
-      );
-      commandEngine(
-        `setoption name Skill Level Probability value ${errorProbability}`
+        `setoption name ${
+          analysisType === AnalysisType.NNUE
+            ? "Use NNUE value true"
+            : "Use NNUE value false"
+        }`
       );
     },
     [commandEngine]
   );
 
   const findMove = useCallback(
-    ({ history, accelerate }: { history: Move[]; accelerate?: boolean }) => {
+    (fen: string) => {
       if (isRunning) {
         return;
       }
-      const moveString = formatMoveString(history);
       setStatus(ChessEngineStatus.Running);
       setMove(null);
-      commandEngine(`position startpos moves ${moveString}`);
-      commandEvaler(`position startpos moves ${moveString}`);
-      if (accelerate) {
-        const timeString = formatTimeString({ depth, duration, increment });
-        commandEngine(`go ${timeString}`);
-      } else {
-        commandEngine(`go`);
-      }
+      commandEngine(`position fen ${fen}`);
+      commandEngine(`go depth ${depth}`);
     },
-    [commandEngine, commandEvaler, depth, duration, increment, isRunning]
+    [commandEngine, depth, isRunning]
   );
 
-  const handleEngineMessage = useCallback(
-    (event: MessageEvent) => {
-      const line = typeof event === "object" ? event.data : event;
-      if (IS_SYSTEM_MESSAGE.test(line)) {
-        return;
-      }
-      if (ENGINE_IS_LOADED.test(line)) {
-        setStatus(ChessEngineStatus.Loaded);
-        return;
-      }
-      if (ENGINE_IS_READY.test(line)) {
-        setStatus(ChessEngineStatus.Ready);
-        return;
-      }
-      if (FOUND_BEST_MOVE.test(line)) {
-        const [, from, to, promotion] = line.match(FOUND_BEST_MOVE);
-        const piece = getPieceAt(board, from.row, from.col);
-        const type = MoveType.STNDRD;
-        // find move type
-        piece && setMove({ type, from, to, piece /* promotion */ });
-        commandEvaler("eval");
-        setStatus(ChessEngineStatus.Ready);
-      }
-      console.debug("engine", line);
-    },
-    [commandEvaler, board]
-  );
-
-  const handleEvalerMessage = useCallback((event: MessageEvent) => {
+  const handleEngineMessage = useCallback((event: MessageEvent) => {
     const line = typeof event === "object" ? event.data : event;
-    if (!IS_SYSTEM_MESSAGE.test(line)) {
-      console.debug("evaler", line);
+    console.log(line);
+    if (FOUND_BEST_MOVE.test(line)) {
+      const [, from, to, promotion] = line.match(FOUND_BEST_MOVE);
+      setMove({ from, to, promotion });
+      setStatus(ChessEngineStatus.Ready);
+    }
+    if (ENGINE_IS_READY.test(line)) {
+      setStatus(ChessEngineStatus.Ready);
+      return;
+    }
+    if (ENGINE_IS_LOADED.test(line)) {
+      setStatus(ChessEngineStatus.Loaded);
+      return;
+    }
+    if (IS_SYSTEM_MESSAGE.test(line)) {
+      return;
     }
   }, []);
 
-  useEffect(() => {
+  const initializeEngine = useCallback(() => {
+    initializeWorker(filepath);
     setEngineHandler(handleEngineMessage);
-    setEvalerHandler(handleEvalerMessage);
+    commandEngine("uci");
+    commandEngine("setoption name Ponder value true");
+    setSkillLevel(skillLevel);
+    setAnalysisType(analysisType);
+    commandEngine("ucinewgame");
+    commandEngine("isready");
   }, [
+    initializeWorker,
     setEngineHandler,
-    setEvalerHandler,
     handleEngineMessage,
-    handleEvalerMessage,
+    commandEngine,
+    setSkillLevel,
+    setAnalysisType,
+    skillLevel,
+    analysisType,
+    filepath,
   ]);
 
-  useEffect(() => {
-    commandEngine("uci");
-    commandEngine("setoption name Contempt value 0");
-    commandEngine("setoption name Ponder value true");
-    commandEngine("setoption name Minimum Thinking Time value 500");
-  }, [commandEngine]);
-
-  useEffect(() => {
-    setSkillLevel(skillLevel);
-  }, [setSkillLevel, skillLevel]);
-
-  useEffect(() => {
-    commandEngine("isready");
-    commandEngine("ucinewgame");
-  }, [commandEngine]);
+  const cleanUpEngine = useCallback(() => {
+    commandEngine("quit");
+    terminateEngine();
+  }, [commandEngine, terminateEngine]);
 
   useEffect(() => {
     return () => {
-      commandEngine("quit");
-      commandEvaler("quit");
+      cleanUpEngine();
     };
-  }, [commandEngine, commandEvaler]);
+  }, [cleanUpEngine]);
 
-  return { move, findMove, isReady, isRunning };
+  return {
+    move,
+    findMove,
+    initializeEngine,
+    cleanUpEngine,
+    isReady,
+    isRunning,
+  };
 };

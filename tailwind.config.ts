@@ -1,5 +1,6 @@
 import type { Config } from "tailwindcss";
 import defaultTheme from "tailwindcss/defaultTheme";
+import plugin from "tailwindcss/plugin";
 
 const config: Config = {
   content: [
@@ -19,6 +20,14 @@ const config: Config = {
     },
   },
   darkMode: "class",
-  plugins: [],
+  plugins: [
+    plugin(function ({ addVariant }) {
+      addVariant("progress-unfilled", ["&::-webkit-progress-bar", "&"]);
+      addVariant("progress-filled", [
+        "&::-webkit-progress-value",
+        "&::-moz-progress-bar",
+      ]);
+    }),
+  ],
 };
 export default config;

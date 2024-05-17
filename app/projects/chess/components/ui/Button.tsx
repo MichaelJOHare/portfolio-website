@@ -1,19 +1,34 @@
 "use client";
 
 import { useGameContext } from "../../hooks/useGameContext";
+import { Square } from "../../types";
 
 interface Direction {
   left: boolean;
   right: boolean;
 }
 
-export default function Button({ direction }: { direction: Direction }) {
+export type ButtonProps = {
+  direction: Direction;
+  handleSquaresToHide: (squares: Square[]) => void;
+  handleShowPromotionPanel: (isShown: boolean) => void;
+};
+
+export default function Button({
+  direction,
+  handleSquaresToHide,
+  handleShowPromotionPanel,
+}: ButtonProps) {
   const { undoMove, redoMove } = useGameContext();
   if (direction.left) {
     return (
       <button
         type="button"
-        onClick={undoMove}
+        onClick={() => {
+          undoMove();
+          handleSquaresToHide([]);
+          handleShowPromotionPanel(false);
+        }}
         className="w-full text-white bg-zinc-700 hover:bg-zinc-900 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm p-2.5 text-center inline-flex items-center me-1.5 dark:bg-zinc-900 dark:hover:bg-zinc-600 dark:focus:ring-blue-800"
       >
         <svg
@@ -38,7 +53,11 @@ export default function Button({ direction }: { direction: Direction }) {
     return (
       <button
         type="button"
-        onClick={redoMove}
+        onClick={() => {
+          redoMove();
+          handleSquaresToHide([]);
+          handleShowPromotionPanel(false);
+        }}
         className="w-full text-white bg-zinc-700 hover:bg-zinc-900  focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm p-2.5 text-center inline-flex items-center ms-1.5 dark:bg-zinc-900 dark:hover:bg-zinc-600 dark:focus:ring-blue-800"
       >
         <svg

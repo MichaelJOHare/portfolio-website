@@ -6,55 +6,179 @@ import { ChessSquare } from "./ChessSquare";
 import { ChessPiece } from "./ChessPiece";
 import { PromotionPanel } from "../ui/PromotionPanel";
 import { useGameContext } from "../../hooks/useGameContext";
+import { AnalysisType, useStockfish } from "../../hooks/useStockfish";
 import {
   isSquare,
   getPieceAt,
   createSquare,
   createPromotionMove,
+  getSquaresToHideDuringPromotion,
+  INITIAL_FEN,
+  toFEN,
+  getSquareFromNotation,
 } from "../../utils";
 import {
   Move,
   MoveType,
   Piece,
   PieceType,
-  PlayerColor,
   Square,
   BoardState,
 } from "../../types";
+import Arrow from "../ui/Arrow";
 
-export default function Board() {
+export type BoardProps = {
+  isStockfishClassicalChecked: boolean;
+  isStockfishNnueChecked: boolean;
+  squaresToHide: Square[];
+  showPromotionPanel: boolean;
+  handleSquaresToHide: (squares: Square[]) => void;
+  handleShowPromotionPanel: (isShown: boolean) => void;
+};
+
+export default function Board({
+  isStockfishClassicalChecked,
+  isStockfishNnueChecked,
+  squaresToHide,
+  showPromotionPanel,
+  handleSquaresToHide,
+  handleShowPromotionPanel,
+}: BoardProps) {
   const {
     board,
     currentPlayerMoves,
     players,
     currentPlayerIndex,
+    moveHistory,
+    halfMoveClock,
+    fullMoveNumber,
     handleMove,
     playerCanMove,
   } = useGameContext();
+
   const [boardState, setBoardState] = useState<BoardState>({
     legalMoveSquares: [],
-    showPromotionPanel: false,
+    engineInitialized: false,
+    engineRunning: false,
     promotionSquare: undefined,
     promotionColor: undefined,
-    squaresToHide: [],
     promotingPawn: undefined,
     selectedPiece: undefined,
   });
+  const [arrowCoordinates, setArrowCoordinates] = useState({
+    x1: 0,
+    x2: 0,
+    y1: 0,
+    y2: 0,
+  });
+
+  const analysisType = isStockfishClassicalChecked
+    ? AnalysisType.CLASSICAL
+    : isStockfishNnueChecked
+    ? AnalysisType.NNUE
+    : null;
+  const {
+    move: engineMove,
+    findMove,
+    initializeEngine,
+    cleanUpEngine,
+  } = useStockfish({
+    analysisType,
+    skillLevel: 20, // get from modal
+    filepath: "/stockfish/stockfish-nnue-16.js",
+  });
+
+  const generateCurrentFen = useCallback(() => {
+    console.log(
+      "generateCurrentFen",
+      currentPlayerIndex,
+      players[currentPlayerIndex]
+    );
+    return toFEN(
+      board,
+      players,
+      currentPlayerIndex,
+      moveHistory,
+      halfMoveClock,
+      fullMoveNumber
+    );
+  }, [
+    board,
+    currentPlayerIndex,
+    fullMoveNumber,
+    halfMoveClock,
+    moveHistory,
+    players,
+  ]);
+
+  function getArrowFromBestMove() {
+    if (engineMove) {
+      const from = getSquareFromNotation(engineMove.from);
+      const to = getSquareFromNotation(engineMove.to);
+      setArrowCoordinates({
+        x1: from.col * 12.5 + 6.25,
+        y1: from.row * 12.5 + 6.25,
+        x2: to.col * 12.5 + 6.25,
+        y2: to.row * 12.5 + 6.25,
+      });
+    }
+  }
+
+  useEffect(() => {
+    if (analysisType && !boardState.engineInitialized) {
+      initializeEngine();
+      setBoardState((prevState) => ({
+        ...prevState,
+        engineInitialized: true,
+      }));
+    } else if (!analysisType && boardState.engineInitialized) {
+      cleanUpEngine();
+      setBoardState((prevState) => ({
+        ...prevState,
+        engineInitialized: false,
+      }));
+    }
+  }, [
+    analysisType,
+    boardState.engineInitialized,
+    initializeEngine,
+    cleanUpEngine,
+  ]);
+  useEffect(() => {
+    setBoardState((prevState) => {
+      if (!prevState.engineRunning && prevState.engineInitialized) {
+        findMove(generateCurrentFen());
+        return {
+          ...prevState,
+          engineRunning: true,
+        };
+      }
+      return prevState;
+    });
+  }, [generateCurrentFen, boardState.engineInitialized, findMove]);
+  useEffect(() => {
+    if (boardState.engineRunning && engineMove) {
+      setBoardState((prevState) => ({
+        ...prevState,
+        engineRunning: false,
+      }));
+      getArrowFromBestMove();
+    }
+  }, [engineMove, boardState.engineRunning]);
 
   const updateStateAfterMove = useCallback(
     (move: Move, piece: Piece, row: number, col: number) => {
       if (move.type === MoveType.PROMO) {
         setBoardState((prevState) => ({
           ...prevState,
-          showPromotionPanel: true,
           promotionSquare: move.to,
           promotionColor: move.piece.color,
           promotingPawn: move.piece,
-          squaresToHide: getSquaresToHideDuringPromotion(
-            move.to,
-            move.piece.color
-          ),
         }));
+        handleSquaresToHide(
+          getSquaresToHideDuringPromotion(move.to, move.piece.color)
+        );
+        handleShowPromotionPanel(true);
       } else {
         handleMove(piece, createSquare(row, col));
         setBoardState((prevState) => ({
@@ -64,9 +188,15 @@ export default function Board() {
           promotingPawn: undefined,
           selectedPiece: undefined,
         }));
+        setArrowCoordinates({ x1: 0, y1: 0, x2: 0, y2: 0 });
       }
     },
-    [handleMove]
+    [
+      handleMove,
+      handleShowPromotionPanel,
+      handleSquaresToHide,
+      generateCurrentFen,
+    ]
   );
 
   const handlePieceSelection = (row: number, col: number) => {
@@ -126,14 +256,15 @@ export default function Board() {
 
     setBoardState((prevState) => ({
       ...prevState,
-      showPromotionPanel: false,
       promotionSquare: undefined,
-      squaresToHide: [],
     }));
+    handleSquaresToHide([]);
+    handleShowPromotionPanel(false);
+    setArrowCoordinates({ x1: 0, y1: 0, x2: 0, y2: 0 });
   };
 
   const isSquareToHide = (square: Square) => {
-    return boardState.squaresToHide.find(
+    return squaresToHide.find(
       (s) => s.row === square.row && s.col === square.col
     );
   };
@@ -162,15 +293,11 @@ export default function Board() {
           });
       },
       onDrop({ source, location }) {
-        setBoardState({
-          ...boardState,
+        setBoardState((prevState) => ({
+          ...prevState,
           legalMoveSquares: [],
-        });
-        if (boardState.showPromotionPanel)
-          setBoardState({
-            ...boardState,
-            showPromotionPanel: false,
-          });
+        }));
+        if (showPromotionPanel) handleShowPromotionPanel(false);
         const destination = location.current.dropTargets[0];
         if (!destination) {
           return;
@@ -201,14 +328,14 @@ export default function Board() {
     });
   }, [
     board,
-    boardState,
     handleMove,
     updateStateAfterMove,
     playerCanMove,
     currentPlayerMoves,
     boardState.promotionColor,
     boardState.promotionSquare,
-    boardState.showPromotionPanel,
+    handleShowPromotionPanel,
+    showPromotionPanel,
   ]);
 
   if (!board) {
@@ -220,7 +347,7 @@ export default function Board() {
       id="chessboard"
       className="relative grid grid-cols-8 w-[90vmin] h-[90vmin] lg:w-[70vmin] lg:h-[70vmin] touch-none"
     >
-      {boardState.showPromotionPanel && (
+      {showPromotionPanel && (
         <div className="absolute top-0 left-0 w-[90vmin] h-[90vmin] bg-black bg-opacity-20 z-20 lg:w-[70vmin] lg:h-[70vmin]">
           <PromotionPanel
             square={boardState.promotionSquare}
@@ -230,6 +357,7 @@ export default function Board() {
           />
         </div>
       )}
+      {arrowCoordinates && <Arrow arrowCoordinates={arrowCoordinates} />}
       {board.map((row, rowIndex) =>
         row.map((square, colIndex) => (
           <ChessSquare
@@ -253,13 +381,4 @@ export default function Board() {
       )}
     </div>
   );
-}
-
-function getSquaresToHideDuringPromotion(square: Square, color: PlayerColor) {
-  const squaresToHide = [];
-  const increment = color === PlayerColor.WHITE ? 1 : -1;
-  for (let i = 1; i < 4; i++) {
-    squaresToHide.push({ row: square.row + i * increment, col: square.col });
-  }
-  return squaresToHide;
 }

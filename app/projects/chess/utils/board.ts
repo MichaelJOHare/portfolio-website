@@ -1,4 +1,12 @@
-import { Square, Piece, Player, Move, PieceSetup, PieceType } from "../types";
+import {
+  Square,
+  Piece,
+  Player,
+  Move,
+  PieceSetup,
+  PieceType,
+  PlayerColor,
+} from "../types";
 import { copyPiece } from "./piece";
 import { createSquare } from "./square";
 import {
@@ -90,6 +98,18 @@ export const isKingInCheck = (opponentMoves: Move[]) => {
   return opponentMoves.some((move) => {
     return move.capturedPiece && move.capturedPiece.type === PieceType.KING;
   });
+};
+
+export const getSquaresToHideDuringPromotion = (
+  square: Square,
+  color: PlayerColor
+) => {
+  const squaresToHide = [];
+  const increment = color === PlayerColor.WHITE ? 1 : -1;
+  for (let i = 1; i < 4; i++) {
+    squaresToHide.push({ row: square.row + i * increment, col: square.col });
+  }
+  return squaresToHide;
 };
 
 export const copyBoard = (board: Square[][]) => {

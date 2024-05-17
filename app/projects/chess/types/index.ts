@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { ChessEngineMove } from "../hooks/useStockfish";
 
 export type Square = {
   row: number;
@@ -61,10 +62,10 @@ export type PieceSetup = {
 
 export interface BoardState {
   legalMoveSquares: Move[];
-  showPromotionPanel: boolean;
+  engineInitialized: boolean;
+  engineRunning: boolean;
   promotionSquare: Square | undefined;
   promotionColor: PlayerColor | undefined;
-  squaresToHide: Square[];
   promotingPawn: Piece | undefined;
   selectedPiece: Piece | undefined;
 }

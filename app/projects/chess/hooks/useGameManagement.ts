@@ -406,6 +406,10 @@ export const useGameManagement = (): GameStateContext => {
       const tempMove = playerCanMove(movingPiece, targetSquare, promotionMove);
       if (tempMove && tempMove.piece.id === movingPiece.id) {
         finalizeMove(tempMove);
+        setGameState((prevState) => ({
+          ...prevState,
+          undoneMoves: [],
+        }));
       }
     },
     [playerCanMove, finalizeMove]
@@ -423,11 +427,24 @@ export const useGameManagement = (): GameStateContext => {
             piece:
               lastMove.from.row === rowIndex && lastMove.from.col === colIndex
                 ? lastMove.piece
-                : lastMove.to.row === rowIndex && lastMove.to.col === colIndex
+                : lastMove.to.row === rowIndex &&
+                  lastMove.to.col === colIndex &&
+                  lastMove.type !== MoveType.EP
                 ? lastMove.capturedPiece
                 : square.piece,
           }))
         );
+        const lastMoveEP =
+          lastMove.type === MoveType.EP ? (lastMove as EnPassantMove) : null;
+        if (lastMoveEP) {
+          updatedBoardState[lastMoveEP.capturedPieceSquare.row][
+            lastMoveEP.capturedPieceSquare.col
+          ].piece = lastMoveEP.capturedPiece;
+          updatedBoardState[lastMoveEP.from.row][lastMoveEP.from.col].piece =
+            lastMoveEP.piece;
+          updatedBoardState[lastMoveEP.to.row][lastMoveEP.to.col].piece =
+            undefined;
+        }
         const piecesToUpdate = [lastMove.piece];
         if (lastMove.capturedPiece) {
           lastMove.capturedPiece.isAlive = true;
