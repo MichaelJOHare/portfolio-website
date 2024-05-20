@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { useGameContext } from "../../hooks/useGameContext";
-import { Square, SquareProps } from "../../types";
+import { Piece, Square, SquareProps } from "../../types";
 import { dropTargetForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import {
   createSquare,
@@ -16,6 +16,7 @@ export const ChessSquare = ({
   square,
   legalMoveSquares,
   onSquareClick,
+  selectedPiece,
   children,
 }: SquareProps) => {
   const { playerCanMove, board, isKingInCheck, kingSquare } = useGameContext();
@@ -37,11 +38,18 @@ export const ChessSquare = ({
   const getColor = (
     state: HoveredState,
     isDark: boolean,
+    selectedPiece?: Piece,
     isKingInCheck?: boolean,
     kingSquare?: Square
   ): string => {
     if (state === "validMove") {
       return "bg-green-400";
+    } else if (
+      selectedPiece &&
+      square[0] === selectedPiece.currentSquare.row &&
+      square[1] === selectedPiece.currentSquare.col
+    ) {
+      return isDark ? "bg-green-600" : "bg-green-800";
     } else if (
       isKingInCheck &&
       square[0] === kingSquare?.row &&
@@ -92,6 +100,7 @@ export const ChessSquare = ({
       className={`relative flex justify-center items-center w-full h-full aspect-square ${getColor(
         state,
         isDark,
+        selectedPiece,
         isKingInCheck,
         kingSquare
       )}`}

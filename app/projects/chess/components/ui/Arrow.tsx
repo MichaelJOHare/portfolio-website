@@ -1,15 +1,7 @@
 import { useState, useEffect } from "react";
+import { ArrowProps } from "../../types";
 
-interface ArrowProps {
-  arrowCoordinates: {
-    x1: number;
-    y1: number;
-    x2: number;
-    y2: number;
-  };
-}
-
-export default function Arrow({ arrowCoordinates }: ArrowProps) {
+export default function Arrow({ x1, y1, x2, y2, isStockfish }: ArrowProps) {
   const [headLength, setHeadLength] = useState(0);
   const [opacity] = useState(0.7);
 
@@ -19,21 +11,14 @@ export default function Arrow({ arrowCoordinates }: ArrowProps) {
     setHeadLength(calculatedHeadLength);
   }, []);
 
-  const angle = Math.atan2(
-    arrowCoordinates.y2 - arrowCoordinates.y1,
-    arrowCoordinates.x2 - arrowCoordinates.x1
-  );
-  const adjustedX2 = arrowCoordinates.x2 - headLength * Math.cos(angle) * 0.85;
-  const adjustedY2 = arrowCoordinates.y2 - headLength * Math.sin(angle) * 0.85;
+  const angle = Math.atan2(y2 - y1, x2 - x1);
+  const adjustedX2 = x2 - headLength * Math.cos(angle) * 0.85;
+  const adjustedY2 = y2 - headLength * Math.sin(angle) * 0.85;
 
-  const arrowPointX =
-    arrowCoordinates.x2 - headLength * Math.cos(angle - Math.PI / 6);
-  const arrowPointY =
-    arrowCoordinates.y2 - headLength * Math.sin(angle - Math.PI / 6);
-  const arrowPointX2 =
-    arrowCoordinates.x2 - headLength * Math.cos(angle + Math.PI / 6);
-  const arrowPointY2 =
-    arrowCoordinates.y2 - headLength * Math.sin(angle + Math.PI / 6);
+  const arrowPointX = x2 - headLength * Math.cos(angle - Math.PI / 6);
+  const arrowPointY = y2 - headLength * Math.sin(angle - Math.PI / 6);
+  const arrowPointX2 = x2 - headLength * Math.cos(angle + Math.PI / 6);
+  const arrowPointY2 = y2 - headLength * Math.sin(angle + Math.PI / 6);
 
   return (
     <svg
@@ -43,17 +28,17 @@ export default function Arrow({ arrowCoordinates }: ArrowProps) {
       viewBox="0 0 100 100"
     >
       <line
-        x1={arrowCoordinates.x1}
-        y1={arrowCoordinates.y1}
+        x1={x1}
+        y1={y1}
         x2={adjustedX2}
         y2={adjustedY2}
-        stroke="green"
+        stroke={isStockfish ? "blue" : "green"}
         strokeWidth="0.19375vmin"
         opacity={opacity}
       />
       <polygon
-        points={`${arrowCoordinates.x2},${arrowCoordinates.y2} ${arrowPointX},${arrowPointY} ${arrowPointX2},${arrowPointY2}`}
-        fill="green"
+        points={`${x2},${y2} ${arrowPointX},${arrowPointY} ${arrowPointX2},${arrowPointY2}`}
+        fill={isStockfish ? "blue" : "green"}
         opacity={opacity}
       />
     </svg>

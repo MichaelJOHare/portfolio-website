@@ -34,6 +34,8 @@ export default function GameLog({
     setShowFenTextArea(!showFenTextArea);
   };
 
+  const handleResetGame = () => {};
+
   const onMoveClick = (index: number) => {
     const movesToUndo = moveHistory.length - index;
     for (let i = 1; i < movesToUndo; i++) {
@@ -65,14 +67,52 @@ export default function GameLog({
                 <span className="sr-only">Import FEN</span>
                 <span
                   role="tooltip"
-                  className="pointer-events-none absolute px-2 py-2 -top-7 left-0 w-max opacity-0 transition-opacity group-hover:opacity-100 text-sm font-medium text-white duration-300 bg-gray-900 rounded-lg shadow-sm dark:bg-gray-800"
+                  className="pointer-events-none absolute px-2 py-2 -top-10 -left-6 w-max opacity-0 transition-opacity group-hover:opacity-100 text-sm font-medium text-white duration-300 bg-gray-900 rounded-lg shadow-sm dark:bg-gray-800"
                 >
                   Import FEN
                 </span>
               </button>
             </div>
-            <div className="flex-grow self-center">
-              <h1 className="text-center text-3xl font-medium">Game Log</h1>
+            <div className="group relative">
+              <button
+                type="button"
+                className="p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
+                onClick={handleResetGame}
+              >
+                <svg
+                  className="w-10 h-10"
+                  viewBox="0 0 21 21"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="currentColor"
+                >
+                  <g strokeWidth="0"></g>
+                  <g strokeLinecap="round" strokeLinejoin="round"></g>
+                  <g>
+                    <g
+                      fill="none"
+                      fillRule="evenodd"
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      transform="matrix(0 1 1 0 2.5 2.5)"
+                    >
+                      <path d="m3.98652376 1.07807068c-2.38377179 1.38514556-3.98652376 3.96636605-3.98652376 6.92192932 0 4.418278 3.581722 8 8 8s8-3.581722 8-8-3.581722-8-8-8"></path>{" "}
+                      <path
+                        d="m4 1v4h-4"
+                        transform="matrix(1 0 0 -1 0 6)"
+                      ></path>
+                    </g>
+                  </g>
+                </svg>
+                <span className="sr-only">Reset Game</span>
+                <span
+                  role="tooltip"
+                  className="pointer-events-none absolute px-2 py-2 -top-10 -left-6 w-max opacity-0 transition-opacity group-hover:opacity-100 text-sm font-medium text-white duration-300 bg-gray-900 rounded-lg shadow-sm dark:bg-gray-800"
+                >
+                  Reset Game
+                </span>
+              </button>
             </div>
             <div className="flex flex-col">
               <div className="group relative">

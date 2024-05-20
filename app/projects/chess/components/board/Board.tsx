@@ -23,6 +23,7 @@ import {
   BoardProps,
 } from "../../types";
 import Arrow from "../ui/Arrow";
+import Circle from "../ui/Circle";
 import { useAnalysis } from "../../hooks/useAnalysis";
 import { useChessboardHighlighter } from "../../hooks/useChessboardHighlighter";
 
@@ -31,18 +32,18 @@ export default function Board({
   isStockfishNnueChecked,
   squaresToHide,
   showPromotionPanel,
+  highlighter,
   handleSquaresToHide,
   handleShowPromotionPanel,
 }: BoardProps) {
   const [boardState, setBoardState] = useState<BoardState>({
-    legalMoveSquares: [],
     engineInitialized: false,
     engineRunning: false,
     promotionSquare: undefined,
     promotionColor: undefined,
     promotingPawn: undefined,
-    selectedPiece: undefined,
   });
+
   const {
     board,
     currentPlayerMoves,
@@ -51,14 +52,35 @@ export default function Board({
     handleMove,
     playerCanMove,
   } = useGameContext();
-  const { arrowCoordinates, setArrowCoordinates } = useAnalysis(
+
+  const setEngineInitState = (isEngineInit: boolean) => {
+    setBoardState((prevState) => ({
+      ...prevState,
+      engineInitialized: isEngineInit,
+    }));
+  };
+
+  const setEngineRunningState = (isEngineRunning: boolean) => {
+    setBoardState((prevState) => ({
+      ...prevState,
+      engineRunning: isEngineRunning,
+    }));
+  };
+
+  useAnalysis(
     isStockfishClassicalChecked,
     isStockfishNnueChecked,
-    boardState,
-    setBoardState
+    boardState.engineInitialized,
+    boardState.engineRunning,
+    setEngineInitState,
+    setEngineRunningState,
+    highlighter.setArrowHighlighterState
   ); // if move during analysis -> stop -> restart on current fen
-  const { onMouseDown, onMouseMove, onMouseUp } =
-    useChessboardHighlighter(setArrowCoordinates);
+
+  const { onMouseDown, onMouseMove, onMouseUp } = useChessboardHighlighter(
+    highlighter.setArrowHighlighterState,
+    highlighter.setCircleHighlighterState
+  );
 
   const updateStateAfterMove = useCallback(
     (move: Move, piece: Piece, row: number, col: number) => {
@@ -82,44 +104,39 @@ export default function Board({
           promotingPawn: undefined,
           selectedPiece: undefined,
         }));
-        setArrowCoordinates({ x1: 0, y1: 0, x2: 0, y2: 0 });
+        highlighter.clearArrowCircleHighlights();
       }
     },
-    [handleMove, handleShowPromotionPanel, handleSquaresToHide]
+    [handleMove, handleShowPromotionPanel, handleSquaresToHide, highlighter]
   );
 
   const handlePieceSelection = (row: number, col: number) => {
-    // clear highlights
-    setBoardState((prevState) => ({
-      ...prevState,
-      legalMoveSquares: [],
-      selectedPiece: undefined,
-    }));
+    highlighter.clearSelectedPieceHighlighterState();
+    highlighter.clearLegalMoveHighlighterState();
     const piece = getPieceAt(board, row, col);
     if (piece && piece.color === players[currentPlayerIndex].color) {
-      setBoardState((prevState) => ({ ...prevState, selectedPiece: piece }));
+      highlighter.setSelectedPieceHighlighterState(piece);
       const moves = currentPlayerMoves.filter(
         (move) => move.piece.id === piece.id
       );
       moves &&
         moves.forEach((move) => {
-          setBoardState((prevState) => ({
-            ...prevState,
-            legalMoveSquares: [...prevState.legalMoveSquares, move],
-          }));
+          highlighter.setLegalMoveHighlighterState(move);
         });
-    } else if (boardState.selectedPiece) {
+    } else if (highlighter.highlighterState.selectedPiece) {
       const move = playerCanMove(
-        boardState.selectedPiece,
+        highlighter.highlighterState.selectedPiece,
         createSquare(row, col)
       );
       if (move) {
-        updateStateAfterMove(move, boardState.selectedPiece, row, col);
+        updateStateAfterMove(
+          move,
+          highlighter.highlighterState.selectedPiece,
+          row,
+          col
+        );
       } else {
-        setBoardState((prevState) => ({
-          ...prevState,
-          selectedPiece: undefined,
-        }));
+        highlighter.clearSelectedPieceHighlighterState();
       }
     }
   };
@@ -149,7 +166,7 @@ export default function Board({
     }));
     handleSquaresToHide([]);
     handleShowPromotionPanel(false);
-    setArrowCoordinates({ x1: 0, y1: 0, x2: 0, y2: 0 });
+    highlighter.clearArrowCircleHighlights();
   };
 
   const isSquareToHide = (square: Square) => {
@@ -175,17 +192,11 @@ export default function Board({
           currentPlayerMoves.filter((move) => move.piece.id === piece.id);
         moves &&
           moves.forEach((move) => {
-            setBoardState((prevState) => ({
-              ...prevState,
-              legalMoveSquares: [...prevState.legalMoveSquares, move],
-            }));
+            highlighter.setLegalMoveHighlighterState(move);
           });
       },
       onDrop({ source, location }) {
-        setBoardState((prevState) => ({
-          ...prevState,
-          legalMoveSquares: [],
-        }));
+        highlighter.clearLegalMoveHighlighterState();
         if (showPromotionPanel) handleShowPromotionPanel(false);
         const destination = location.current.dropTargets[0];
         if (!destination) {
@@ -220,6 +231,7 @@ export default function Board({
     handleMove,
     updateStateAfterMove,
     playerCanMove,
+    highlighter,
     currentPlayerMoves,
     boardState.promotionColor,
     boardState.promotionSquare,
@@ -244,6 +256,11 @@ export default function Board({
       onMouseUp={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
         onMouseUp(e)
       }
+      onContextMenu={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        e.nativeEvent.stopImmediatePropagation();
+      }}
     >
       {showPromotionPanel && (
         <div className="absolute top-0 left-0 w-[90vmin] h-[90vmin] bg-black bg-opacity-20 z-20 lg:w-[70vmin] lg:h-[70vmin]">
@@ -255,14 +272,16 @@ export default function Board({
           />
         </div>
       )}
-      {arrowCoordinates && <Arrow arrowCoordinates={arrowCoordinates} />}
+      {<Arrow {...highlighter.highlighterState.arrowCoordinates} />}
+      {<Circle {...highlighter.highlighterState.circleCoordinates} />}
       {board.map((row, rowIndex) =>
         row.map((square, colIndex) => (
           <ChessSquare
             key={`${rowIndex}-${colIndex}`}
             square={[rowIndex, colIndex]}
-            legalMoveSquares={boardState.legalMoveSquares}
+            legalMoveSquares={highlighter.highlighterState.legalMoveSquares}
             onSquareClick={handlePieceSelection}
+            selectedPiece={highlighter.highlighterState.selectedPiece}
           >
             {square.piece &&
               square.piece.isAlive &&

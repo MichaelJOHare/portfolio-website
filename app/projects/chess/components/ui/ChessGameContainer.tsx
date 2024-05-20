@@ -1,11 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Board from "../board/Board";
 import GameLog from "./GameLog";
 import Button from "./Button";
 import GameProvider from "../../providers/GameProvider";
-import { Square } from "../../types";
+import {
+  Square,
+  HighlighterState,
+  ArrowProps,
+  CircleProps,
+  Move,
+  Piece,
+} from "../../types";
 
 export default function ChessGameContainer() {
   const [stockfishClassicalChecked, setStockfishClassicalChecked] =
@@ -13,6 +20,89 @@ export default function ChessGameContainer() {
   const [stockfishNnueChecked, setStockfishNnueChecked] = useState(false);
   const [squaresToHide, setSquaresToHide] = useState<Square[]>([]);
   const [showPromotionPanel, setShowPromotionPanel] = useState(false);
+  const [highlighterState, setHighlighterState] = useState<HighlighterState>({
+    selectedPiece: undefined,
+    legalMoveSquares: [],
+    arrowCoordinates: { x1: 0, y1: 0, x2: 0, y2: 0 },
+    circleCoordinates: {
+      cx: 0,
+      cy: 0,
+    },
+  });
+
+  /*   const [highlightedSquares, setHighlightedSquares] =
+    useState<HighlightedSquares>({
+      drawnOnSquares: [],
+      stockfishBestMoveSquares: [],
+    }); */ // Use to track which are drawn and which are analysis arrows ->
+  //                  drawn arrows removed on left click, analysis arrows stay until move made/analysis toggled off
+
+  const setLegalMoveHighlighterState = (newLegalMoveSquare: Move) => {
+    setHighlighterState((prevState) => ({
+      ...prevState,
+      legalMoveSquares: [...prevState.legalMoveSquares, newLegalMoveSquare],
+    }));
+  };
+
+  const clearLegalMoveHighlighterState = () => {
+    setHighlighterState((prevState) => ({
+      ...prevState,
+      legalMoveSquares: [],
+    }));
+  };
+
+  const setSelectedPieceHighlighterState = (piece: Piece) => {
+    setHighlighterState((prevState) => ({
+      ...prevState,
+      selectedPiece: piece,
+    }));
+  };
+
+  const clearSelectedPieceHighlighterState = () => {
+    setHighlighterState((prevState) => ({
+      ...prevState,
+      selectedPiece: undefined,
+    }));
+  };
+
+  const setArrowHighlighterState = (newArrowCoords: ArrowProps) => {
+    setHighlighterState((prevState) => ({
+      ...prevState,
+      arrowCoordinates: newArrowCoords,
+    }));
+  };
+
+  const setCircleHighlighterState = (newCircleCoords: CircleProps) => {
+    setHighlighterState((prevState) => ({
+      ...prevState,
+      circleCoordinates: newCircleCoords,
+    }));
+  };
+
+  const clearArrowHighlights = () => {
+    setHighlighterState((prevState) => ({
+      ...prevState,
+      arrowCoordinates: { x1: 0, y1: 0, x2: 0, y2: 0 },
+    }));
+  };
+
+  const clearCircleHighlights = () => {
+    setHighlighterState((prevState) => ({
+      ...prevState,
+      circleCoordinates: { cx: 0, cy: 0 },
+    }));
+  };
+
+  const clearArrowCircleHighlights = useCallback(() => {
+    clearArrowHighlights();
+    clearCircleHighlights();
+  }, []);
+
+  const clearAllHighlights = useCallback(() => {
+    clearArrowCircleHighlights();
+    clearLegalMoveHighlighterState();
+    clearSelectedPieceHighlighterState();
+  }, [clearArrowCircleHighlights]);
 
   const handleStockfishClassicalChange = (isChecked: boolean) => {
     setStockfishClassicalChecked(isChecked);
@@ -32,6 +122,23 @@ export default function ChessGameContainer() {
     setShowPromotionPanel(isShown);
   };
 
+  const highlighter = {
+    highlighterState,
+    setSelectedPieceHighlighterState,
+    clearSelectedPieceHighlighterState,
+    setLegalMoveHighlighterState,
+    clearLegalMoveHighlighterState,
+    setArrowHighlighterState,
+    setCircleHighlighterState,
+    clearArrowCircleHighlights,
+  };
+
+  useEffect(() => {
+    if (!stockfishClassicalChecked && !stockfishNnueChecked) {
+      clearArrowHighlights(); // change to just stockfish arrows once implemented
+    }
+  }, [stockfishClassicalChecked, stockfishNnueChecked]);
+
   return (
     <div className="flex flex-col justify-center lg:flex-row">
       <GameProvider>
@@ -42,6 +149,7 @@ export default function ChessGameContainer() {
             squaresToHide={squaresToHide}
             handleSquaresToHide={handleSquaresToHide}
             showPromotionPanel={showPromotionPanel}
+            highlighter={highlighter}
             handleShowPromotionPanel={handleShowPromotionPanel}
           />
           <div
@@ -69,11 +177,13 @@ export default function ChessGameContainer() {
                 direction={{ left: true, right: false }}
                 handleSquaresToHide={handleSquaresToHide}
                 handleShowPromotionPanel={handleShowPromotionPanel}
+                clearHighlights={clearAllHighlights}
               />
               <Button
                 direction={{ left: false, right: true }}
                 handleSquaresToHide={handleSquaresToHide}
                 handleShowPromotionPanel={handleShowPromotionPanel}
+                clearHighlights={clearAllHighlights}
               />
             </div>
             <GameLog

@@ -10,6 +10,7 @@ export type SquareProps = {
   square: number[];
   legalMoveSquares: Move[];
   onSquareClick: (row: number, col: number) => void;
+  selectedPiece: Piece | undefined;
   children: ReactNode;
 };
 
@@ -20,6 +21,18 @@ export type BoardProps = {
   showPromotionPanel: boolean;
   handleSquaresToHide: (squares: Square[]) => void;
   handleShowPromotionPanel: (isShown: boolean) => void;
+  highlighter: HighlighterBoardProps;
+};
+
+export type HighlighterBoardProps = {
+  highlighterState: HighlighterState;
+  setSelectedPieceHighlighterState: (piece: Piece) => void;
+  clearSelectedPieceHighlighterState: () => void;
+  setLegalMoveHighlighterState: (newLegalMove: Move) => void;
+  clearLegalMoveHighlighterState: () => void;
+  setArrowHighlighterState: (newArrowCoords: ArrowProps) => void;
+  setCircleHighlighterState: (newCircleCoords: CircleProps) => void;
+  clearArrowCircleHighlights: () => void;
 };
 
 export type HighlightedSquares = {
@@ -69,13 +82,11 @@ export type PieceSetup = {
 };
 
 export interface BoardState {
-  legalMoveSquares: Move[];
   engineInitialized: boolean;
   engineRunning: boolean;
   promotionSquare: Square | undefined;
   promotionColor: PlayerColor | undefined;
   promotingPawn: Piece | undefined;
-  selectedPiece: Piece | undefined;
 }
 
 export interface GameState {
@@ -124,6 +135,26 @@ export interface ChessboardHighlighter {
   onMouseMove: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
   onMouseUp: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
 }
+
+export interface HighlighterState {
+  selectedPiece: Piece | undefined;
+  legalMoveSquares: Move[];
+  arrowCoordinates: ArrowProps;
+  circleCoordinates: CircleProps;
+}
+
+export type ArrowProps = {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  isStockfish?: boolean;
+};
+
+export type CircleProps = {
+  cx: number;
+  cy: number;
+};
 
 export enum MoveType {
   STNDRD = "Standard",

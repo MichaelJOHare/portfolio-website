@@ -2,21 +2,18 @@ import { useCallback, useEffect, useState } from "react";
 import { useGameContext } from "./useGameContext";
 import { useStockfish, AnalysisType } from "./useStockfish";
 import { toFEN, getSquareFromNotation } from "../utils";
-import { BoardState } from "../types";
+import { ArrowProps } from "../types";
 
 export const useAnalysis = (
   isStockfishClassicalChecked: boolean,
   isStockfishNnueChecked: boolean,
-  boardState: BoardState,
-  setBoardState: React.Dispatch<React.SetStateAction<BoardState>>
+  engineInitialized: boolean,
+  engineRunning: boolean,
+  setEngineInitState: (isInitialized: boolean) => void,
+  setEngineRunningState: (isRunning: boolean) => void,
+  setArrowHighlighterState: (arrowCoordinates: ArrowProps) => void
 ) => {
-  const [arrowCoordinates, setArrowCoordinates] = useState({
-    x1: 0,
-    x2: 0,
-    y1: 0,
-    y2: 0,
-  });
-
+  const [storedFen, setStoredFen] = useState("");
   const {
     board,
     players,
@@ -42,11 +39,6 @@ export const useAnalysis = (
   });
 
   const generateCurrentFen = useCallback(() => {
-    console.log(
-      "generateCurrentFen",
-      currentPlayerIndex,
-      players[currentPlayerIndex]
-    );
     return toFEN(
       board,
       players,
@@ -64,60 +56,53 @@ export const useAnalysis = (
     players,
   ]);
 
-  function getArrowFromBestMove() {
+  const getArrowFromBestMove = useCallback(() => {
     if (engineMove) {
       const from = getSquareFromNotation(engineMove.from);
       const to = getSquareFromNotation(engineMove.to);
-      setArrowCoordinates({
+      setArrowHighlighterState({
         x1: from.col * 12.5 + 6.25,
         y1: from.row * 12.5 + 6.25,
         x2: to.col * 12.5 + 6.25,
         y2: to.row * 12.5 + 6.25,
+        isStockfish: true,
       });
     }
-  }
+  }, [engineMove, setArrowHighlighterState]);
 
   useEffect(() => {
-    if (analysisType && !boardState.engineInitialized) {
+    if (analysisType && !engineInitialized) {
       initializeEngine();
-      setBoardState((prevState) => ({
-        ...prevState,
-        engineInitialized: true,
-      }));
-    } else if (!analysisType && boardState.engineInitialized) {
+      setEngineInitState(true);
+    } else if (!analysisType && engineInitialized) {
       cleanUpEngine();
-      setBoardState((prevState) => ({
-        ...prevState,
-        engineInitialized: false,
-      }));
+      setEngineInitState(false);
     }
   }, [
     analysisType,
-    boardState.engineInitialized,
+    engineInitialized,
+    setEngineInitState,
     initializeEngine,
     cleanUpEngine,
   ]);
   useEffect(() => {
-    setBoardState((prevState) => {
-      if (!prevState.engineRunning && prevState.engineInitialized) {
-        findMove(generateCurrentFen());
-        return {
-          ...prevState,
-          engineRunning: true,
-        };
-      }
-      return prevState;
-    });
-  }, [generateCurrentFen, boardState.engineInitialized, findMove]);
-  useEffect(() => {
-    if (boardState.engineRunning && engineMove) {
-      setBoardState((prevState) => ({
-        ...prevState,
-        engineRunning: false,
-      }));
+    const currentFen = generateCurrentFen();
+    if (!engineRunning && engineInitialized && currentFen !== storedFen) {
+      findMove(currentFen);
+      setStoredFen(currentFen);
+      setEngineRunningState(true);
+    } else if (engineRunning && engineMove) {
+      setEngineRunningState(false);
       getArrowFromBestMove();
     }
-  }, [engineMove, boardState.engineRunning]);
-
-  return { arrowCoordinates, setArrowCoordinates };
+  }, [
+    engineMove,
+    generateCurrentFen,
+    engineInitialized,
+    engineRunning,
+    storedFen,
+    setEngineRunningState,
+    findMove,
+    getArrowFromBestMove,
+  ]);
 };
