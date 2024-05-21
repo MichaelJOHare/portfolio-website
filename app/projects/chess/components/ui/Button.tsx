@@ -10,16 +10,16 @@ interface Direction {
 
 export type ButtonProps = {
   direction: Direction;
+  clearAllHighlights: () => void;
   handleSquaresToHide: (squares: Square[]) => void;
   handleShowPromotionPanel: (isShown: boolean) => void;
-  clearHighlights: () => void;
 };
 
 export default function Button({
   direction,
+  clearAllHighlights,
   handleSquaresToHide,
   handleShowPromotionPanel,
-  clearHighlights,
 }: ButtonProps) {
   const { undoMove, redoMove } = useGameContext();
   if (direction.left) {
@@ -30,7 +30,7 @@ export default function Button({
           undoMove();
           handleSquaresToHide([]);
           handleShowPromotionPanel(false);
-          clearHighlights();
+          clearAllHighlights();
         }}
         className="w-full text-white bg-zinc-700 hover:bg-zinc-900 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm p-2.5 text-center inline-flex items-center me-1.5 dark:bg-zinc-900 dark:hover:bg-zinc-600 dark:focus:ring-blue-800"
       >
@@ -60,7 +60,7 @@ export default function Button({
           redoMove();
           handleSquaresToHide([]);
           handleShowPromotionPanel(false);
-          clearHighlights();
+          clearAllHighlights();
         }}
         className="w-full text-white bg-zinc-700 hover:bg-zinc-900  focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm p-2.5 text-center inline-flex items-center ms-1.5 dark:bg-zinc-900 dark:hover:bg-zinc-600 dark:focus:ring-blue-800"
       >

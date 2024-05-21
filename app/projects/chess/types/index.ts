@@ -17,38 +17,11 @@ export type SquareProps = {
 export type BoardProps = {
   isStockfishClassicalChecked: boolean;
   isStockfishNnueChecked: boolean;
+  highlighter: Highlighter;
   squaresToHide: Square[];
   showPromotionPanel: boolean;
   handleSquaresToHide: (squares: Square[]) => void;
   handleShowPromotionPanel: (isShown: boolean) => void;
-  highlighter: HighlighterBoardProps;
-};
-
-export type HighlighterBoardProps = {
-  highlighterState: HighlighterState;
-  highlightedSquares: HighlightedSquares;
-  setSelectedPieceHighlight: (piece: Piece) => void;
-  clearSelectedPieceHighlight: () => void;
-  setLegalMoveHighlights: (newLegalMove: Move) => void;
-  clearLegalMoveHighlights: () => void;
-  setTempArrow: (newArrowCoords: ArrowProps) => void;
-  addDrawnArrow: (arrowCoords: ArrowProps) => void;
-  isArrowAtSquare: (arrowCoords: ArrowProps) => boolean;
-  removeArrowAtSquare: (arrowCoords: ArrowProps) => void;
-  addStockfishBestMoveArrow: (arrowCoords: ArrowProps) => void;
-  clearStockfishBestMoveArrow: () => void;
-  setTempCircle: (newCircleCoords: CircleProps) => void;
-  addDrawnCircle: (circleCoords: CircleProps) => void;
-  isCircleAtSquare: (circleCoords: CircleProps) => boolean;
-  removeCircleAtSquare: (circleCoords: CircleProps) => void;
-  clearDrawnArrowCircles: () => void;
-  clearAllDrawnOnSquares: () => void;
-};
-
-export type HighlightedSquares = {
-  arrowsDrawnOnSquares: ArrowProps[];
-  circlesDrawnOnSquares: CircleProps[];
-  stockfishBestMoveArrow: ArrowProps[];
 };
 
 export type Player = {
@@ -142,11 +115,36 @@ export type GameStateContext = {
   resetGame: () => void;
 };
 
-export interface ChessboardHighlighter {
+export type Highlighter = {
+  tempDrawings: HighlighterState;
+  highlightedSquares: HighlightedSquares;
+  setSelectedPieceHighlight: (piece: Piece) => void;
+  clearSelectedPieceHighlight: () => void;
+  setLegalMoveHighlights: (newLegalMove: Move) => void;
+  clearLegalMoveHighlights: () => void;
+  setTempArrow: (newArrowCoords: ArrowProps) => void;
+  addDrawnArrow: (arrowCoords: ArrowProps) => void;
+  isArrowAtSquare: (arrowCoords: ArrowProps) => boolean;
+  removeArrowAtSquare: (arrowCoords: ArrowProps) => void;
+  addStockfishBestMoveArrow: (arrowCoords: ArrowProps) => void;
+  setTempCircle: (newCircleCoords: CircleProps) => void;
+  addDrawnCircle: (circleCoords: CircleProps) => void;
+  isCircleAtSquare: (circleCoords: CircleProps) => boolean;
+  removeCircleAtSquare: (circleCoords: CircleProps) => void;
+  clearDrawnArrowCircles: () => void;
+  clearAllDrawnOnSquares: () => void;
+  clearAllHighlights: () => void;
+  clearStockfishBestMoveArrow: () => void;
   onMouseDown: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
   onMouseMove: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
   onMouseUp: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
-}
+};
+
+export type HighlightedSquares = {
+  arrowsDrawnOnSquares: ArrowProps[];
+  circlesDrawnOnSquares: CircleProps[];
+  stockfishBestMoveArrow: ArrowProps[];
+};
 
 export interface HighlighterState {
   selectedPiece: Piece | undefined;

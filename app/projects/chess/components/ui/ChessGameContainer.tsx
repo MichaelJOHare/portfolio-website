@@ -1,194 +1,20 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Board from "../board/Board";
 import GameLog from "./GameLog";
 import Button from "./Button";
 import GameProvider from "../../providers/GameProvider";
-import {
-  Square,
-  HighlighterState,
-  HighlightedSquares,
-  ArrowProps,
-  CircleProps,
-  Move,
-  Piece,
-} from "../../types";
+import { Square } from "../../types";
+import { useChessboardHighlighter } from "../../hooks/useChessboardHighlighter";
 
 export default function ChessGameContainer() {
+  const highlighter = useChessboardHighlighter();
   const [stockfishClassicalChecked, setStockfishClassicalChecked] =
     useState(false);
   const [stockfishNnueChecked, setStockfishNnueChecked] = useState(false);
   const [squaresToHide, setSquaresToHide] = useState<Square[]>([]);
   const [showPromotionPanel, setShowPromotionPanel] = useState(false);
-  const [highlighterState, setHighlighterState] = useState<HighlighterState>({
-    selectedPiece: undefined,
-    legalMoveSquares: [],
-    arrowCoordinates: { x1: 0, y1: 0, x2: 0, y2: 0 },
-    circleCoordinates: {
-      cx: 0,
-      cy: 0,
-    },
-  });
-  const [highlightedSquares, setHighlightedSquares] =
-    useState<HighlightedSquares>({
-      arrowsDrawnOnSquares: [],
-      circlesDrawnOnSquares: [],
-      stockfishBestMoveArrow: [],
-    });
-
-  const removeCircleAtSquare = (circleCoords: CircleProps) => {
-    setHighlightedSquares((prevState) => ({
-      ...prevState,
-      circlesDrawnOnSquares: prevState.circlesDrawnOnSquares.filter(
-        (circle) =>
-          !(circle.cx === circleCoords.cx && circle.cy === circleCoords.cy)
-      ),
-    }));
-  };
-
-  const removeArrowAtSquare = (arrowCoords: ArrowProps) => {
-    setHighlightedSquares((prevState) => ({
-      ...prevState,
-      arrowsDrawnOnSquares: prevState.arrowsDrawnOnSquares.filter(
-        (arrow) =>
-          !(
-            arrow.x1 === arrowCoords.x1 &&
-            arrow.y1 === arrowCoords.y1 &&
-            arrow.x2 === arrowCoords.x2 &&
-            arrow.y2 === arrowCoords.y2
-          )
-      ),
-    }));
-  };
-
-  const isCircleAtSquare = (circleCoords: CircleProps) => {
-    return highlightedSquares.circlesDrawnOnSquares.some(
-      (circle) => circle.cx === circleCoords.cx && circle.cy === circleCoords.cy
-    );
-  };
-
-  const isArrowAtSquare = (arrowCoords: ArrowProps) => {
-    return highlightedSquares.arrowsDrawnOnSquares.some(
-      (arrow) =>
-        arrow.x1 === arrowCoords.x1 &&
-        arrow.y1 === arrowCoords.y1 &&
-        arrow.x2 === arrowCoords.x2 &&
-        arrow.y2 === arrowCoords.y2
-    );
-  };
-
-  const setTempArrow = (newArrowCoords: ArrowProps) => {
-    setHighlighterState((prevState) => ({
-      ...prevState,
-      arrowCoordinates: newArrowCoords,
-    }));
-  };
-
-  const clearTempArrow = () => {
-    console.log("clearing");
-    setHighlighterState((prevState) => ({
-      ...prevState,
-      arrowCoordinates: { x1: 0, y1: 0, x2: 0, y2: 0 },
-    }));
-  };
-
-  const addDrawnArrow = (arrowCoords: ArrowProps) => {
-    clearTempArrow();
-    setHighlightedSquares((prevState) => ({
-      ...prevState,
-      arrowsDrawnOnSquares: [...prevState.arrowsDrawnOnSquares, arrowCoords],
-    }));
-  };
-
-  const setTempCircle = (newCircleCoords: CircleProps) => {
-    setHighlighterState((prevState) => ({
-      ...prevState,
-      circleCoordinates: newCircleCoords,
-    }));
-  };
-
-  const clearTempCircle = () => {
-    setHighlighterState((prevState) => ({
-      ...prevState,
-      circleCoordinates: { cx: 0, cy: 0 },
-    }));
-  };
-
-  const addDrawnCircle = (circleCoords: CircleProps) => {
-    clearTempCircle();
-    setHighlightedSquares((prevState) => ({
-      ...prevState,
-      circlesDrawnOnSquares: [...prevState.circlesDrawnOnSquares, circleCoords],
-    }));
-  };
-
-  const addStockfishBestMoveArrow = useCallback((arrowCoords: ArrowProps) => {
-    setHighlightedSquares((prevState) => ({
-      ...prevState,
-      stockfishBestMoveArrow: [
-        ...prevState.stockfishBestMoveArrow,
-        arrowCoords,
-      ],
-    }));
-  }, []);
-
-  const clearStockfishBestMoveArrow = useCallback(() => {
-    setHighlightedSquares((prevState) => ({
-      ...prevState,
-      stockfishBestMoveArrow: [],
-    }));
-  }, []);
-
-  const clearDrawnArrowCircles = () => {
-    setHighlightedSquares((prevState) => ({
-      ...prevState,
-      arrowsDrawnOnSquares: [],
-      circlesDrawnOnSquares: [],
-    }));
-  };
-
-  const clearAllDrawnOnSquares = () => {
-    setHighlightedSquares({
-      arrowsDrawnOnSquares: [],
-      circlesDrawnOnSquares: [],
-      stockfishBestMoveArrow: [],
-    });
-  };
-
-  const setLegalMoveHighlights = (newLegalMoveSquare: Move) => {
-    setHighlighterState((prevState) => ({
-      ...prevState,
-      legalMoveSquares: [...prevState.legalMoveSquares, newLegalMoveSquare],
-    }));
-  };
-
-  const clearLegalMoveHighlights = () => {
-    setHighlighterState((prevState) => ({
-      ...prevState,
-      legalMoveSquares: [],
-    }));
-  };
-
-  const setSelectedPieceHighlight = (piece: Piece) => {
-    setHighlighterState((prevState) => ({
-      ...prevState,
-      selectedPiece: piece,
-    }));
-  };
-
-  const clearSelectedPieceHighlight = () => {
-    setHighlighterState((prevState) => ({
-      ...prevState,
-      selectedPiece: undefined,
-    }));
-  };
-
-  const clearAllHighlights = useCallback(() => {
-    clearAllDrawnOnSquares();
-    clearLegalMoveHighlights();
-    clearSelectedPieceHighlight();
-  }, []);
 
   const handleStockfishClassicalChange = (isChecked: boolean) => {
     setStockfishClassicalChecked(isChecked);
@@ -211,40 +37,18 @@ export default function ChessGameContainer() {
   const resetBoard = () => {
     setStockfishClassicalChecked(false);
     setStockfishNnueChecked(false);
-    clearAllHighlights();
+    highlighter.clearAllHighlights();
     setSquaresToHide([]);
     setShowPromotionPanel(false);
   };
 
-  const highlighter = {
-    highlighterState,
-    highlightedSquares,
-    setSelectedPieceHighlight,
-    clearSelectedPieceHighlight,
-    setLegalMoveHighlights,
-    clearLegalMoveHighlights,
-    setTempArrow,
-    addDrawnArrow,
-    isArrowAtSquare,
-    removeArrowAtSquare,
-    addStockfishBestMoveArrow,
-    clearStockfishBestMoveArrow,
-    setTempCircle,
-    addDrawnCircle,
-    isCircleAtSquare,
-    removeCircleAtSquare,
-    clearDrawnArrowCircles,
-    clearAllDrawnOnSquares,
-  };
-
   useEffect(() => {
     if (!stockfishClassicalChecked && !stockfishNnueChecked) {
-      setHighlightedSquares((prevState) => ({
-        ...prevState,
-        stockfishBestMoveArrow: [],
-      }));
+      if (highlighter.highlightedSquares.stockfishBestMoveArrow.length > 0) {
+        highlighter.clearStockfishBestMoveArrow();
+      }
     }
-  }, [stockfishClassicalChecked, stockfishNnueChecked]);
+  }, [stockfishClassicalChecked, stockfishNnueChecked, highlighter]);
 
   return (
     <div className="flex flex-col justify-center lg:flex-row">
@@ -253,10 +57,10 @@ export default function ChessGameContainer() {
           <Board
             isStockfishClassicalChecked={stockfishClassicalChecked}
             isStockfishNnueChecked={stockfishNnueChecked}
+            highlighter={highlighter}
             squaresToHide={squaresToHide}
             handleSquaresToHide={handleSquaresToHide}
             showPromotionPanel={showPromotionPanel}
-            highlighter={highlighter}
             handleShowPromotionPanel={handleShowPromotionPanel}
           />
           <div
@@ -283,15 +87,15 @@ export default function ChessGameContainer() {
             <div className="flex justify-between h-[20vmin] w-full lg:pt-2 lg:h-[10vmin] lg:order-last">
               <Button
                 direction={{ left: true, right: false }}
+                clearAllHighlights={highlighter.clearAllHighlights}
                 handleSquaresToHide={handleSquaresToHide}
                 handleShowPromotionPanel={handleShowPromotionPanel}
-                clearHighlights={clearAllHighlights}
               />
               <Button
                 direction={{ left: false, right: true }}
+                clearAllHighlights={highlighter.clearAllHighlights}
                 handleSquaresToHide={handleSquaresToHide}
                 handleShowPromotionPanel={handleShowPromotionPanel}
-                clearHighlights={clearAllHighlights}
               />
             </div>
             <div

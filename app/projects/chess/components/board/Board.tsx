@@ -25,14 +25,13 @@ import {
 import Arrow from "../ui/Arrow";
 import Circle from "../ui/Circle";
 import { useAnalysis } from "../../hooks/useAnalysis";
-import { useChessboardHighlighter } from "../../hooks/useChessboardHighlighter";
 
 export default function Board({
   isStockfishClassicalChecked,
   isStockfishNnueChecked,
+  highlighter,
   squaresToHide,
   showPromotionPanel,
-  highlighter,
   handleSquaresToHide,
   handleShowPromotionPanel,
 }: BoardProps) {
@@ -43,7 +42,6 @@ export default function Board({
     promotionColor: undefined,
     promotingPawn: undefined,
   });
-
   const {
     board,
     currentPlayerMoves,
@@ -77,10 +75,6 @@ export default function Board({
     highlighter.addStockfishBestMoveArrow,
     highlighter.clearStockfishBestMoveArrow
   );
-
-  const { onMouseDown, onMouseMove, onMouseUp } = useChessboardHighlighter({
-    ...highlighter,
-  });
 
   const updateStateAfterMove = useCallback(
     (move: Move, piece: Piece, row: number, col: number) => {
@@ -131,15 +125,15 @@ export default function Board({
           highlighter.setLegalMoveHighlights(move);
         });
       }
-    } else if (highlighter.highlighterState.selectedPiece) {
+    } else if (highlighter.tempDrawings.selectedPiece) {
       const move = playerCanMove(
-        highlighter.highlighterState.selectedPiece,
+        highlighter.tempDrawings.selectedPiece,
         createSquare(row, col)
       );
       if (move) {
         updateStateAfterMove(
           move,
-          highlighter.highlighterState.selectedPiece,
+          highlighter.tempDrawings.selectedPiece,
           row,
           col
         );
@@ -257,13 +251,13 @@ export default function Board({
       id="chessboard"
       className="relative grid grid-cols-8 w-[90vmin] h-[90vmin] lg:w-[70vmin] lg:h-[70vmin] touch-none"
       onMouseDown={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
-        onMouseDown(e)
+        highlighter.onMouseDown(e)
       }
       onMouseMove={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
-        onMouseMove(e)
+        highlighter.onMouseMove(e)
       }
       onMouseUp={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
-        onMouseUp(e)
+        highlighter.onMouseUp(e)
       }
       onContextMenu={(e) => {
         e.preventDefault();
@@ -281,8 +275,8 @@ export default function Board({
           />
         </div>
       )}
-      {<Arrow {...highlighter.highlighterState.arrowCoordinates} />}
-      {<Circle {...highlighter.highlighterState.circleCoordinates} />}
+      {<Arrow {...highlighter.tempDrawings.arrowCoordinates} />}
+      {<Circle {...highlighter.tempDrawings.circleCoordinates} />}
       {highlighter.highlightedSquares.arrowsDrawnOnSquares.map(
         (arrow, index) => (
           <Arrow key={`arrow-${index}`} {...arrow} />
@@ -303,9 +297,9 @@ export default function Board({
           <ChessSquare
             key={`${rowIndex}-${colIndex}`}
             square={[rowIndex, colIndex]}
-            legalMoveSquares={highlighter.highlighterState.legalMoveSquares}
+            legalMoveSquares={highlighter.tempDrawings.legalMoveSquares}
             onSquareClick={handlePieceSelection}
-            selectedPiece={highlighter.highlighterState.selectedPiece}
+            selectedPiece={highlighter.tempDrawings.selectedPiece}
           >
             {square.piece &&
               square.piece.isAlive &&
