@@ -143,7 +143,7 @@ export const useAnalysis = (
         evalGauge.setAttribute("value", evalCentipawn.toString());
       }
     }
-  }, [evalCentipawn]);
+  }, [evalCentipawn, evalGauge, currentPlayerIndex, players]);
 
   return { stopAnalysis };
 };

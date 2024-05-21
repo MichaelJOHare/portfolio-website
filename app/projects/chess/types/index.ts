@@ -135,6 +135,7 @@ export type GameStateContext = {
   ) => void;
   undoMove: () => void;
   redoMove: () => void;
+  resetGame: () => void;
 };
 
 export interface ChessboardHighlighter {

@@ -11,6 +11,7 @@ export type GameLogProps = {
   stockfishNnueChecked: boolean;
   onStockfishClassicalChange: (isChecked: boolean) => void;
   onStockfishNnueChange: (isChecked: boolean) => void;
+  resetBoard: () => void;
 };
 
 export default function GameLog({
@@ -18,6 +19,7 @@ export default function GameLog({
   stockfishNnueChecked,
   onStockfishClassicalChange,
   onStockfishNnueChange,
+  resetBoard,
 }: GameLogProps) {
   const {
     board,
@@ -27,6 +29,8 @@ export default function GameLog({
     fullMoveNumber,
     moveHistory,
     undoMove,
+    resetGame,
+    initializeBoard,
   } = useGameContext();
   const [showFenTextArea, setShowFenTextArea] = useState(false);
 
@@ -36,7 +40,11 @@ export default function GameLog({
 
   const updateStateOnFenChange = () => {};
 
-  const handleResetGame = () => {};
+  const handleResetGame = () => {
+    resetGame();
+    resetBoard();
+    initializeBoard();
+  };
 
   const onMoveClick = (index: number) => {
     const movesToUndo = moveHistory.length - index;
@@ -120,6 +128,7 @@ export default function GameLog({
               <div className="group relative">
                 <label className="inline-flex pb-1 items-center cursor-pointer">
                   <input
+                    id="sf-classical"
                     type="checkbox"
                     value=""
                     className="sr-only peer"
@@ -144,6 +153,7 @@ export default function GameLog({
               <div className="group relative">
                 <label className="inline-flex pt-1 items-center cursor-pointer">
                   <input
+                    id="sf-NNUE"
                     type="checkbox"
                     value=""
                     className="sr-only peer"

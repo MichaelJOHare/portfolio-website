@@ -483,12 +483,25 @@ export const useGameManagement = (): GameStateContext => {
     switchPlayer,
   ]);
 
-  /*     const clearBoard = useCallback(() => {
-      setGameState((prevState) => ({
-        ...prevState,
-        board: defaultBoard(),
-      }));
-    }, []); */
+  const resetGame = () => {
+    setGameState({
+      board: defaultBoard(),
+      players: [
+        createPlayer(PlayerColor.WHITE, PlayerType.HUMAN),
+        createPlayer(PlayerColor.BLACK, PlayerType.HUMAN),
+      ],
+      piecesByPlayer: new Map<Player, Piece[]>(),
+      currentPlayerMoves: [],
+      capturedPieces: [],
+      isKingInCheck: false,
+      kingSquare: undefined,
+      currentPlayerIndex: 0,
+      moveHistory: [],
+      undoneMoves: [],
+      halfMoveClock: 0,
+      fullMoveNumber: 1,
+    });
+  };
 
   return {
     ...gameState,
@@ -497,5 +510,6 @@ export const useGameManagement = (): GameStateContext => {
     handleMove,
     undoMove,
     redoMove,
+    resetGame,
   };
 };

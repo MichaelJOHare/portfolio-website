@@ -166,6 +166,14 @@ export default function ChessGameContainer() {
     setShowPromotionPanel(isShown);
   };
 
+  const resetBoard = () => {
+    setStockfishClassicalChecked(false);
+    setStockfishNnueChecked(false);
+    clearAllHighlights();
+    setSquaresToHide([]);
+    setShowPromotionPanel(false);
+  };
+
   const highlighter = {
     highlighterState,
     highlightedSquares,
@@ -259,6 +267,7 @@ export default function ChessGameContainer() {
               stockfishNnueChecked={stockfishNnueChecked}
               onStockfishClassicalChange={handleStockfishClassicalChange}
               onStockfishNnueChange={handleStockfishNnueChange}
+              resetBoard={resetBoard}
             />
           </div>
         </div>
