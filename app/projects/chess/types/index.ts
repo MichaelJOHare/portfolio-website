@@ -33,10 +33,14 @@ export type HighlighterBoardProps = {
   clearLegalMoveHighlights: () => void;
   setTempArrow: (newArrowCoords: ArrowProps) => void;
   addDrawnArrow: (arrowCoords: ArrowProps) => void;
+  isArrowAtSquare: (arrowCoords: ArrowProps) => boolean;
+  removeArrowAtSquare: (arrowCoords: ArrowProps) => void;
   addStockfishBestMoveArrow: (arrowCoords: ArrowProps) => void;
   clearStockfishBestMoveArrow: () => void;
   setTempCircle: (newCircleCoords: CircleProps) => void;
   addDrawnCircle: (circleCoords: CircleProps) => void;
+  isCircleAtSquare: (circleCoords: CircleProps) => boolean;
+  removeCircleAtSquare: (circleCoords: CircleProps) => void;
   clearDrawnArrowCircles: () => void;
   clearAllDrawnOnSquares: () => void;
 };

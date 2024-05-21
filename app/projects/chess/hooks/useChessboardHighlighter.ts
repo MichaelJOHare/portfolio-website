@@ -1,13 +1,10 @@
 import { useState } from "react";
-import { ChessboardHighlighter, ArrowProps, CircleProps } from "../types";
+import { ChessboardHighlighter, HighlighterBoardProps } from "../types";
 
 export const useChessboardHighlighter = (
-  setTempArrow: (arrowCoordinates: ArrowProps) => void,
-  addDrawnArrow: (arrowCoords: ArrowProps) => void,
-  setTempCircle: (circleCoordinates: CircleProps) => void,
-  addDrawnCircle: (circleCoords: CircleProps) => void,
-  clearDrawnArrowCircles: () => void
+  highlighter: HighlighterBoardProps // refactor to have highlighter in here, makes no sense where it is rn besides needing a couple things in Button and Board
 ): ChessboardHighlighter => {
+  // return highlighter from here and access in other components
   const [isDrawing, setIsDrawing] = useState(false);
   const [circleDrawn, setCircleDrawn] = useState(false);
   const [hasMovedOutOfSquare, setHasMovedOutOfSquare] = useState(false);
@@ -18,7 +15,7 @@ export const useChessboardHighlighter = (
 
   const onMouseDown = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     if (e.button === 0) {
-      clearDrawnArrowCircles();
+      highlighter.clearDrawnArrowCircles();
     }
     if (e.button === 2) {
       const square = getSquareFromCoordinates(e.clientX, e.clientY);
@@ -37,7 +34,7 @@ export const useChessboardHighlighter = (
           currentSquare.col === originalSquare.col;
         if (!isInOriginalSquare) {
           clearCircleHighlighterState();
-          setTempArrow({
+          highlighter.setTempArrow({
             x1: originalSquare.col * 12.5 + 6.25,
             y1: originalSquare.row * 12.5 + 6.25,
             x2: currentSquare.col * 12.5 + 6.25,
@@ -47,7 +44,7 @@ export const useChessboardHighlighter = (
           setCircleDrawn(false);
         } else if (isInOriginalSquare && hasMovedOutOfSquare) {
           clearArrowHighlighterState();
-          setTempCircle({
+          highlighter.setTempCircle({
             cx: originalSquare.col * 12.5 + 6.25,
             cy: originalSquare.row * 12.5 + 6.25,
           });
@@ -62,17 +59,29 @@ export const useChessboardHighlighter = (
     if (e.button === 2 && isDrawing) {
       const currentSquare = getSquareFromCoordinates(e.clientX, e.clientY);
       if (!hasMovedOutOfSquare && !circleDrawn && originalSquare) {
-        addDrawnCircle({
+        const circleCoords = {
           cx: originalSquare.col * 12.5 + 6.25,
           cy: originalSquare.row * 12.5 + 6.25,
-        });
+        };
+        if (highlighter.isCircleAtSquare(circleCoords)) {
+          clearCircleHighlighterState();
+          highlighter.removeCircleAtSquare(circleCoords);
+        } else {
+          highlighter.addDrawnCircle(circleCoords);
+        }
       } else if (originalSquare && currentSquare && hasMovedOutOfSquare) {
-        addDrawnArrow({
+        const arrowCoords = {
           x1: originalSquare.col * 12.5 + 6.25,
           y1: originalSquare.row * 12.5 + 6.25,
           x2: currentSquare.col * 12.5 + 6.25,
           y2: currentSquare.row * 12.5 + 6.25,
-        });
+        };
+        if (highlighter.isArrowAtSquare(arrowCoords)) {
+          clearArrowHighlighterState();
+          highlighter.removeArrowAtSquare(arrowCoords);
+        } else {
+          highlighter.addDrawnArrow(arrowCoords);
+        }
       }
       setIsDrawing(false);
       setHasMovedOutOfSquare(false);
@@ -101,10 +110,10 @@ export const useChessboardHighlighter = (
   };
 
   const clearArrowHighlighterState = () => {
-    setTempArrow({ x1: 0, y1: 0, x2: 0, y2: 0 });
+    highlighter.setTempArrow({ x1: 0, y1: 0, x2: 0, y2: 0 });
   };
   const clearCircleHighlighterState = () => {
-    setTempCircle({ cx: 0, cy: 0 });
+    highlighter.setTempCircle({ cx: 0, cy: 0 });
   };
 
   return { onMouseDown, onMouseMove, onMouseUp };

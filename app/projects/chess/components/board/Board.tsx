@@ -78,13 +78,9 @@ export default function Board({
     highlighter.clearStockfishBestMoveArrow
   );
 
-  const { onMouseDown, onMouseMove, onMouseUp } = useChessboardHighlighter(
-    highlighter.setTempArrow,
-    highlighter.addDrawnArrow,
-    highlighter.setTempCircle,
-    highlighter.addDrawnCircle,
-    highlighter.clearDrawnArrowCircles
-  );
+  const { onMouseDown, onMouseMove, onMouseUp } = useChessboardHighlighter({
+    ...highlighter,
+  });
 
   const updateStateAfterMove = useCallback(
     (move: Move, piece: Piece, row: number, col: number) => {
@@ -126,14 +122,15 @@ export default function Board({
     highlighter.clearLegalMoveHighlights();
     const piece = getPieceAt(board, row, col);
     if (piece && piece.color === players[currentPlayerIndex].color) {
-      highlighter.setSelectedPieceHighlight(piece);
       const moves = currentPlayerMoves.filter(
         (move) => move.piece.id === piece.id
       );
-      moves &&
+      if (moves.length > 0) {
+        highlighter.setSelectedPieceHighlight(piece);
         moves.forEach((move) => {
           highlighter.setLegalMoveHighlights(move);
         });
+      }
     } else if (highlighter.highlighterState.selectedPiece) {
       const move = playerCanMove(
         highlighter.highlighterState.selectedPiece,

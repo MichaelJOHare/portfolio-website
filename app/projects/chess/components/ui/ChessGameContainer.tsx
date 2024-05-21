@@ -37,6 +37,47 @@ export default function ChessGameContainer() {
       stockfishBestMoveArrow: [],
     });
 
+  const removeCircleAtSquare = (circleCoords: CircleProps) => {
+    setHighlightedSquares((prevState) => ({
+      ...prevState,
+      circlesDrawnOnSquares: prevState.circlesDrawnOnSquares.filter(
+        (circle) =>
+          !(circle.cx === circleCoords.cx && circle.cy === circleCoords.cy)
+      ),
+    }));
+  };
+
+  const removeArrowAtSquare = (arrowCoords: ArrowProps) => {
+    setHighlightedSquares((prevState) => ({
+      ...prevState,
+      arrowsDrawnOnSquares: prevState.arrowsDrawnOnSquares.filter(
+        (arrow) =>
+          !(
+            arrow.x1 === arrowCoords.x1 &&
+            arrow.y1 === arrowCoords.y1 &&
+            arrow.x2 === arrowCoords.x2 &&
+            arrow.y2 === arrowCoords.y2
+          )
+      ),
+    }));
+  };
+
+  const isCircleAtSquare = (circleCoords: CircleProps) => {
+    return highlightedSquares.circlesDrawnOnSquares.some(
+      (circle) => circle.cx === circleCoords.cx && circle.cy === circleCoords.cy
+    );
+  };
+
+  const isArrowAtSquare = (arrowCoords: ArrowProps) => {
+    return highlightedSquares.arrowsDrawnOnSquares.some(
+      (arrow) =>
+        arrow.x1 === arrowCoords.x1 &&
+        arrow.y1 === arrowCoords.y1 &&
+        arrow.x2 === arrowCoords.x2 &&
+        arrow.y2 === arrowCoords.y2
+    );
+  };
+
   const setTempArrow = (newArrowCoords: ArrowProps) => {
     setHighlighterState((prevState) => ({
       ...prevState,
@@ -45,6 +86,7 @@ export default function ChessGameContainer() {
   };
 
   const clearTempArrow = () => {
+    console.log("clearing");
     setHighlighterState((prevState) => ({
       ...prevState,
       arrowCoordinates: { x1: 0, y1: 0, x2: 0, y2: 0 },
@@ -183,10 +225,14 @@ export default function ChessGameContainer() {
     clearLegalMoveHighlights,
     setTempArrow,
     addDrawnArrow,
+    isArrowAtSquare,
+    removeArrowAtSquare,
     addStockfishBestMoveArrow,
     clearStockfishBestMoveArrow,
     setTempCircle,
     addDrawnCircle,
+    isCircleAtSquare,
+    removeCircleAtSquare,
     clearDrawnArrowCircles,
     clearAllDrawnOnSquares,
   };
