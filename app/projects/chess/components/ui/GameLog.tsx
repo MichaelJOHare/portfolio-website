@@ -54,7 +54,7 @@ export default function GameLog({
   };
 
   return (
-    <form className="h-full pb-2">
+    <form className="h-full max-h-fit pb-2 lg:max-h-[60vmin]">
       <div className="h-full w-full flex flex-col border border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
         <div className="flex items-center justify-center px-3 py-2 border-b dark:border-gray-600">
           <div className="w-full max-w-screen-lg flex justify-between items-center">
@@ -176,7 +176,7 @@ export default function GameLog({
           </div>
         </div>
         <div className="h-full flex flex-col px-4 py-2 min-h-64 bg-white rounded-b-lg dark:bg-gray-800">
-          <div className="h-full">
+          <div className="h-full overflow-y-scroll [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {/* need to add capture/promo, disambiguate, etc. */}
             <ul className="flex flex-wrap items-center">
               {moveHistory.map((move, index) => {

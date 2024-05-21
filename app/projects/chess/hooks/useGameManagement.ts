@@ -182,9 +182,27 @@ export const useGameManagement = (): GameStateContext => {
 
   const generateLegalMoves = useCallback(
     (moves: Move[]) => {
+      const checkKingMoves = getPlayerMoves(
+        gameState.players[1 - gameState.currentPlayerIndex],
+        gameState.piecesByPlayer,
+        gameState.board
+      );
+      if (isKingInCheck(checkKingMoves)) {
+        setGameState((prevState) => ({
+          ...prevState,
+          isKingInCheck: true,
+          kingSquare: playersKing?.currentSquare,
+        }));
+      } else {
+        setGameState((prevState) => ({
+          ...prevState,
+          isKingInCheck: false,
+          kingSquare: undefined,
+        }));
+      }
+
       let playersKing: Piece | undefined;
       const legalMoves: Move[] = [];
-      let isKingChecked = false;
 
       moves.forEach((move) => {
         // can move this outside once i make undoMove take state as a param
@@ -228,22 +246,6 @@ export const useGameManagement = (): GameStateContext => {
           ) {
             legalMoves.push(move);
           }
-          if (isKingInCheck(opponentMoves)) {
-            isKingChecked = true;
-          }
-        }
-        if (isKingChecked) {
-          setGameState((prevState) => ({
-            ...prevState,
-            isKingInCheck: true,
-            kingSquare: playersKing?.currentSquare,
-          }));
-        } else {
-          setGameState((prevState) => ({
-            ...prevState,
-            isKingInCheck: false,
-            kingSquare: undefined,
-          }));
         }
       });
       return legalMoves;
