@@ -8,7 +8,7 @@ import {
   MovementStrategy,
 } from "../types";
 
-import { isSquare } from "./square";
+import { isSquare, createSquare } from "./square";
 import { isPlayer, isPlayerColor } from "./player";
 import {
   bishopMovementStrategy,

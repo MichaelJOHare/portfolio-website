@@ -21,7 +21,7 @@ export const knightMovementStrategy: MovementStrategy = (board, piece) => {
     let newRow = row + dRow;
     let newCol = col + dCol;
     if (newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8) {
-      const targetSquare = createSquare(newRow, newCol);
+      const targetSquare = createSquare(newRow, newCol, piece);
       const targetPiece = getPieceAt(board, newRow, newCol);
       const capturedPiece =
         targetPiece && targetPiece.color !== piece.color

@@ -48,11 +48,16 @@ export const kingMovementStrategy: MovementStrategy = (board, piece) => {
           king,
           kingSideRook,
           king.currentSquare,
-          createSquare(king.currentSquare.row, king.currentSquare.col + 2),
+          createSquare(
+            king.currentSquare.row,
+            king.currentSquare.col + 2,
+            king
+          ),
           kingSideRook.currentSquare,
           createSquare(
             kingSideRook.currentSquare.row,
-            kingSideRook.currentSquare.col - 2
+            kingSideRook.currentSquare.col - 2,
+            kingSideRook
           )
         )
       );
@@ -64,11 +69,16 @@ export const kingMovementStrategy: MovementStrategy = (board, piece) => {
           king,
           queenSideRook,
           king.currentSquare,
-          createSquare(king.currentSquare.row, king.currentSquare.col - 2),
+          createSquare(
+            king.currentSquare.row,
+            king.currentSquare.col - 2,
+            king
+          ),
           queenSideRook.currentSquare,
           createSquare(
             queenSideRook.currentSquare.row,
-            queenSideRook.currentSquare.col + 3
+            queenSideRook.currentSquare.col + 3,
+            queenSideRook
           )
         )
       );
@@ -80,7 +90,7 @@ export const kingMovementStrategy: MovementStrategy = (board, piece) => {
     let newCol = col + dCol;
 
     if (newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8) {
-      const targetSquare = createSquare(newRow, newCol);
+      const targetSquare = createSquare(newRow, newCol, piece);
       const targetPiece = getPieceAt(board, newRow, newCol);
       const capturedPiece =
         targetPiece && targetPiece.color !== piece.color

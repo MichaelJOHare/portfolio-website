@@ -18,7 +18,7 @@ export const bishopMovementStrategy: MovementStrategy = (board, piece) => {
     let newCol = col + dCol;
 
     while (newRow >= 0 && newRow <= 7 && newCol >= 0 && newCol <= 7) {
-      const targetSquare = createSquare(newRow, newCol);
+      const targetSquare = createSquare(newRow, newCol, piece);
       const targetPiece = getPieceAt(board, newRow, newCol);
       const capturedPiece =
         targetPiece && targetPiece.color !== piece.color

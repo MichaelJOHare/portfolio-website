@@ -45,7 +45,7 @@ export const pawnMovementStrategy: MovementStrategy = (
         createStandardMove(
           piece,
           createSquare(row, col),
-          createSquare(newRow, col)
+          createSquare(newRow, col, piece)
         )
       );
     }
@@ -70,7 +70,7 @@ export const pawnMovementStrategy: MovementStrategy = (
         createStandardMove(
           piece,
           createSquare(row, col),
-          createSquare(newRow, col)
+          createSquare(newRow, col, piece)
         )
       );
     }
@@ -98,7 +98,7 @@ export const pawnMovementStrategy: MovementStrategy = (
           legalMoves.push(
             createStandardMove(
               piece,
-              createSquare(row, col),
+              createSquare(row, col, piece),
               targetSquare,
               capturedPiece
             )
@@ -135,6 +135,7 @@ export const pawnMovementStrategy: MovementStrategy = (
       const targetSquare: Square = {
         row: row + direction,
         col: lastMove.to.col,
+        piece,
       };
       const capturedPiece = board[lastMove.to.row][lastMove.to.col].piece;
       if (capturedPiece) {
@@ -170,7 +171,7 @@ export const pawnMovementStrategy: MovementStrategy = (
           ) {
             const promotionMove = createPromotionMove(
               piece,
-              { row, col },
+              { row, col, piece },
               forwardSquare,
               promotionType
             );
@@ -194,7 +195,7 @@ export const pawnMovementStrategy: MovementStrategy = (
               const promotionMove = createPromotionMove(
                 piece,
                 { row, col },
-                { row: forwardSquare.row, col: newCol },
+                { row: forwardSquare.row, col: newCol, piece },
                 promotionType,
                 capturedPiece
               );

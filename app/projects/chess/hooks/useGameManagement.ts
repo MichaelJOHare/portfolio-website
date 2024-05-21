@@ -62,7 +62,7 @@ export const useGameManagement = (): GameStateContext => {
         case MoveType.STNDRD:
           const capturedPiece = boardState[move.to.row][move.to.col].piece;
           if (capturedPiece) {
-            // might mess with gen legal moves ... maybe pass in state?
+            // might mess with gen legal moves ... maybe pass in state
             setGameState((prevState) => ({
               ...prevState,
               capturedPieces: [...prevState.capturedPieces, capturedPiece],
@@ -184,6 +184,7 @@ export const useGameManagement = (): GameStateContext => {
     (moves: Move[]) => {
       let playersKing: Piece | undefined;
       const legalMoves: Move[] = [];
+      let isKingChecked = false;
 
       moves.forEach((move) => {
         // can move this outside once i make undoMove take state as a param
@@ -228,18 +229,21 @@ export const useGameManagement = (): GameStateContext => {
             legalMoves.push(move);
           }
           if (isKingInCheck(opponentMoves)) {
-            setGameState((prevState) => ({
-              ...prevState,
-              isKingInCheck: true,
-              kingSquare: playersKing?.currentSquare,
-            }));
-          } else {
-            setGameState((prevState) => ({
-              ...prevState,
-              isKingInCheck: false,
-              kingSquare: undefined,
-            }));
+            isKingChecked = true;
           }
+        }
+        if (isKingChecked) {
+          setGameState((prevState) => ({
+            ...prevState,
+            isKingInCheck: true,
+            kingSquare: playersKing?.currentSquare,
+          }));
+        } else {
+          setGameState((prevState) => ({
+            ...prevState,
+            isKingInCheck: false,
+            kingSquare: undefined,
+          }));
         }
       });
       return legalMoves;

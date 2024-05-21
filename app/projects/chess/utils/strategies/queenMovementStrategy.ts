@@ -22,7 +22,7 @@ export const queenMovementStrategy: MovementStrategy = (board, piece) => {
     let newCol = col + dCol;
 
     while (newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8) {
-      const targetSquare = createSquare(newRow, newCol);
+      const targetSquare = createSquare(newRow, newCol, piece);
       const targetPiece = getPieceAt(board, newRow, newCol);
       const capturedPiece =
         targetPiece && targetPiece.color !== piece.color
