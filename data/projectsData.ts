@@ -32,6 +32,13 @@ const projectsData: Project[] = [
     href: "https://github.com/MichaelJOHare/chess-application2.0",
     playable: false,
   },
+  {
+    title: "Cube-three.js",
+    description: "A rotating cube... that is all.",
+    imgSrc: "/assets/images/cube.png",
+    href: "/projects/cube_threejs",
+    playable: true,
+  },
 ];
 
 export default projectsData;
