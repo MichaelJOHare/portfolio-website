@@ -3,12 +3,15 @@ import { ArrowProps } from "../../types";
 
 export default function Arrow({ x1, y1, x2, y2, isStockfish }: ArrowProps) {
   const [headLength, setHeadLength] = useState(0);
+  const [dpi, setDpi] = useState(1);
   const [opacity] = useState(0.7);
 
   useEffect(() => {
     const vmin = Math.min(window.innerWidth, window.innerHeight);
+    const dpi = window.devicePixelRatio;
     const calculatedHeadLength = vmin * 0.0065;
-    setHeadLength(calculatedHeadLength);
+    setHeadLength(calculatedHeadLength * (0.9 * dpi));
+    setDpi(dpi);
   }, []);
 
   const angle = Math.atan2(y2 - y1, x2 - x1);
@@ -33,7 +36,7 @@ export default function Arrow({ x1, y1, x2, y2, isStockfish }: ArrowProps) {
         x2={adjustedX2}
         y2={adjustedY2}
         stroke={isStockfish ? "blue" : "green"}
-        strokeWidth="0.19375vmin"
+        strokeWidth={dpi === 1 ? "0.19375vmin" : "0.5vmin"}
         opacity={opacity}
       />
       <polygon

@@ -206,7 +206,7 @@ export default function ChessGameContainer() {
             handleShowPromotionPanel={handleShowPromotionPanel}
           />
           <div
-            className={`h-[90vmin] w-5 overflow-hidden lg:h-[70vmin] border-[1px] border-slate-100 border-spacing-0 ml-0.5 ${
+            className={`h-[90vmin] w-5 overflow-hidden lg:h-[70vmin] border-[1px] border-slate-800 dark:border-slate-100 border-spacing-0 mx-0.5 ${
               stockfishClassicalChecked || stockfishNnueChecked
                 ? "visible"
                 : "hidden"
@@ -239,6 +239,20 @@ export default function ChessGameContainer() {
                 handleShowPromotionPanel={handleShowPromotionPanel}
                 clearHighlights={clearAllHighlights}
               />
+            </div>
+            <div
+              className={`w-full h-1.5 pr-0.5 flex justify-center items-center relative ${
+                stockfishClassicalChecked || stockfishNnueChecked
+                  ? "visible"
+                  : "hidden"
+              }`}
+            >
+              <progress
+                id="depth-progress"
+                className="h-1.5 w-[97%] rounded-tl-full rounded-tr-full overflow-hidden progress-filled:bg-green-700 progress-unfilled:bg-stone-900"
+                value={0}
+                max={100}
+              ></progress>
             </div>
             <GameLog
               stockfishClassicalChecked={stockfishClassicalChecked}

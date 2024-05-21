@@ -68,6 +68,7 @@ export const useStockfish = ({
 
   const setAnalysisType = useCallback(
     (analysisType: AnalysisType | null) => {
+      console.log(analysisType);
       const threads =
         analysisType === AnalysisType.NNUE ? calculateThreadsForNNUE() : 1;
       commandEngine(`setoption name Threads value ${threads}`);
@@ -107,6 +108,12 @@ export const useStockfish = ({
       if (INFORMS_DEPTH.test(line)) {
         const currentDepth = parseInt(line.match(INFORMS_DEPTH)[1], 10);
         const currentTime = Date.now();
+        const depthProgress = document.getElementById("depth-progress");
+
+        if (depthProgress) {
+          const depthPercentage = (currentDepth / 24) * 100;
+          depthProgress.setAttribute("value", depthPercentage.toString());
+        }
 
         if (
           currentDepth === 1 ||
@@ -192,6 +199,12 @@ export const useStockfish = ({
       cleanUpEngine();
     };
   }, [cleanUpEngine]);
+
+  useEffect(() => {
+    if (analysisType !== null) {
+      setAnalysisType(analysisType);
+    }
+  }, [analysisType, setAnalysisType]);
 
   return {
     currentMove,
