@@ -26,18 +26,25 @@ export type BoardProps = {
 
 export type HighlighterBoardProps = {
   highlighterState: HighlighterState;
-  setSelectedPieceHighlighterState: (piece: Piece) => void;
-  clearSelectedPieceHighlighterState: () => void;
-  setLegalMoveHighlighterState: (newLegalMove: Move) => void;
-  clearLegalMoveHighlighterState: () => void;
-  setArrowHighlighterState: (newArrowCoords: ArrowProps) => void;
-  setCircleHighlighterState: (newCircleCoords: CircleProps) => void;
-  clearArrowCircleHighlights: () => void;
+  highlightedSquares: HighlightedSquares;
+  setSelectedPieceHighlight: (piece: Piece) => void;
+  clearSelectedPieceHighlight: () => void;
+  setLegalMoveHighlights: (newLegalMove: Move) => void;
+  clearLegalMoveHighlights: () => void;
+  setTempArrow: (newArrowCoords: ArrowProps) => void;
+  addDrawnArrow: (arrowCoords: ArrowProps) => void;
+  addStockfishBestMoveArrow: (arrowCoords: ArrowProps) => void;
+  clearStockfishBestMoveArrow: () => void;
+  setTempCircle: (newCircleCoords: CircleProps) => void;
+  addDrawnCircle: (circleCoords: CircleProps) => void;
+  clearDrawnArrowCircles: () => void;
+  clearAllDrawnOnSquares: () => void;
 };
 
 export type HighlightedSquares = {
-  drawnOnSquares: Square[];
-  stockfishBestMoveSquares: Square[];
+  arrowsDrawnOnSquares: ArrowProps[];
+  circlesDrawnOnSquares: CircleProps[];
+  stockfishBestMoveArrow: ArrowProps[];
 };
 
 export type Player = {

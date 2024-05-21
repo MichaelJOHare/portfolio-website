@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useGameContext } from "./useGameContext";
-import { useStockfish, AnalysisType } from "./useStockfish";
+import { useStockfish, AnalysisType, ChessEngineMove } from "./useStockfish";
 import { toFEN, getSquareFromNotation } from "../utils";
 import { ArrowProps } from "../types";
 
@@ -11,7 +11,8 @@ export const useAnalysis = (
   engineRunning: boolean,
   setEngineInitState: (isInitialized: boolean) => void,
   setEngineRunningState: (isRunning: boolean) => void,
-  setArrowHighlighterState: (arrowCoordinates: ArrowProps) => void
+  addStockfishBestMoveArrow: (arrowCoordinates: ArrowProps) => void,
+  clearStockfishBestMoveArrow: () => void
 ) => {
   const [storedFen, setStoredFen] = useState("");
   const {
@@ -28,8 +29,10 @@ export const useAnalysis = (
     ? AnalysisType.NNUE
     : null;
   const {
-    move: engineMove,
+    currentMove: currentEngineMove,
+    bestMove: bestEngineMove,
     findMove,
+    stopAnalysis,
     initializeEngine,
     cleanUpEngine,
   } = useStockfish({
@@ -56,19 +59,22 @@ export const useAnalysis = (
     players,
   ]);
 
-  const getArrowFromBestMove = useCallback(() => {
-    if (engineMove) {
-      const from = getSquareFromNotation(engineMove.from);
-      const to = getSquareFromNotation(engineMove.to);
-      setArrowHighlighterState({
-        x1: from.col * 12.5 + 6.25,
-        y1: from.row * 12.5 + 6.25,
-        x2: to.col * 12.5 + 6.25,
-        y2: to.row * 12.5 + 6.25,
-        isStockfish: true,
-      });
-    }
-  }, [engineMove, setArrowHighlighterState]);
+  const getArrowFromMove = useCallback(
+    (move: ChessEngineMove) => {
+      if (move) {
+        const from = getSquareFromNotation(move.from);
+        const to = getSquareFromNotation(move.to);
+        addStockfishBestMoveArrow({
+          x1: from.col * 12.5 + 6.25,
+          y1: from.row * 12.5 + 6.25,
+          x2: to.col * 12.5 + 6.25,
+          y2: to.row * 12.5 + 6.25,
+          isStockfish: true,
+        });
+      }
+    },
+    [addStockfishBestMoveArrow]
+  );
 
   useEffect(() => {
     if (analysisType && !engineInitialized) {
@@ -88,21 +94,36 @@ export const useAnalysis = (
   useEffect(() => {
     const currentFen = generateCurrentFen();
     if (!engineRunning && engineInitialized && currentFen !== storedFen) {
+      clearStockfishBestMoveArrow();
       findMove(currentFen);
       setStoredFen(currentFen);
       setEngineRunningState(true);
-    } else if (engineRunning && engineMove) {
+    } else if (engineRunning && currentEngineMove) {
+      clearStockfishBestMoveArrow();
+      getArrowFromMove(currentEngineMove);
+    } else if (engineRunning && bestEngineMove) {
+      clearStockfishBestMoveArrow();
+      getArrowFromMove(bestEngineMove);
       setEngineRunningState(false);
-      getArrowFromBestMove();
     }
+    /* else if (engineRunning && !engineMove && something to check undone after mate ) {
+      // handle case where checkmate happens then user clicks undo move causing engine status to stay Running while engineMove === null
+      clearStockfishBestMoveArrow();
+      findMove(currentFen);
+      setStoredFen(currentFen);
+    } */
   }, [
-    engineMove,
+    currentEngineMove,
+    bestEngineMove,
     generateCurrentFen,
     engineInitialized,
     engineRunning,
     storedFen,
     setEngineRunningState,
     findMove,
-    getArrowFromBestMove,
+    clearStockfishBestMoveArrow,
+    getArrowFromMove,
   ]);
+
+  return { stopAnalysis };
 };

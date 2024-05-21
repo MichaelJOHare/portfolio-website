@@ -172,7 +172,7 @@ export default function GameLog({
                 const isEvenIndex = index % 2 === 0;
                 return (
                   <li
-                    className={`inline-block cursor-pointer hover:bg-slate-600 ${
+                    className={`inline-block cursor-pointer hover:bg-slate-400 dark:hover:bg-slate-600 ${
                       isEvenIndex ? "ml-3 mr-1" : ""
                     } ${
                       index === moveHistory.length - 1

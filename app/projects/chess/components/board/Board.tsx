@@ -53,37 +53,42 @@ export default function Board({
     playerCanMove,
   } = useGameContext();
 
-  const setEngineInitState = (isEngineInit: boolean) => {
+  const setEngineInitState = useCallback((isEngineInit: boolean) => {
     setBoardState((prevState) => ({
       ...prevState,
       engineInitialized: isEngineInit,
     }));
-  };
+  }, []);
 
-  const setEngineRunningState = (isEngineRunning: boolean) => {
+  const setEngineRunningState = useCallback((isEngineRunning: boolean) => {
     setBoardState((prevState) => ({
       ...prevState,
       engineRunning: isEngineRunning,
     }));
-  };
+  }, []);
 
-  useAnalysis(
+  const { stopAnalysis } = useAnalysis(
     isStockfishClassicalChecked,
     isStockfishNnueChecked,
     boardState.engineInitialized,
     boardState.engineRunning,
     setEngineInitState,
     setEngineRunningState,
-    highlighter.setArrowHighlighterState
-  ); // if move during analysis -> stop -> restart on current fen
+    highlighter.addStockfishBestMoveArrow,
+    highlighter.clearStockfishBestMoveArrow
+  );
 
   const { onMouseDown, onMouseMove, onMouseUp } = useChessboardHighlighter(
-    highlighter.setArrowHighlighterState,
-    highlighter.setCircleHighlighterState
+    highlighter.setTempArrow,
+    highlighter.addDrawnArrow,
+    highlighter.setTempCircle,
+    highlighter.addDrawnCircle,
+    highlighter.clearDrawnArrowCircles
   );
 
   const updateStateAfterMove = useCallback(
     (move: Move, piece: Piece, row: number, col: number) => {
+      stopAnalysis();
       if (move.type === MoveType.PROMO) {
         setBoardState((prevState) => ({
           ...prevState,
@@ -104,24 +109,24 @@ export default function Board({
           promotingPawn: undefined,
           selectedPiece: undefined,
         }));
-        highlighter.clearArrowCircleHighlights();
+        highlighter.clearAllDrawnOnSquares();
       }
     },
     [handleMove, handleShowPromotionPanel, handleSquaresToHide, highlighter]
   );
 
   const handlePieceSelection = (row: number, col: number) => {
-    highlighter.clearSelectedPieceHighlighterState();
-    highlighter.clearLegalMoveHighlighterState();
+    highlighter.clearSelectedPieceHighlight();
+    highlighter.clearLegalMoveHighlights();
     const piece = getPieceAt(board, row, col);
     if (piece && piece.color === players[currentPlayerIndex].color) {
-      highlighter.setSelectedPieceHighlighterState(piece);
+      highlighter.setSelectedPieceHighlight(piece);
       const moves = currentPlayerMoves.filter(
         (move) => move.piece.id === piece.id
       );
       moves &&
         moves.forEach((move) => {
-          highlighter.setLegalMoveHighlighterState(move);
+          highlighter.setLegalMoveHighlights(move);
         });
     } else if (highlighter.highlighterState.selectedPiece) {
       const move = playerCanMove(
@@ -136,7 +141,7 @@ export default function Board({
           col
         );
       } else {
-        highlighter.clearSelectedPieceHighlighterState();
+        highlighter.clearSelectedPieceHighlight();
       }
     }
   };
@@ -166,7 +171,7 @@ export default function Board({
     }));
     handleSquaresToHide([]);
     handleShowPromotionPanel(false);
-    highlighter.clearArrowCircleHighlights();
+    highlighter.clearAllDrawnOnSquares();
   };
 
   const isSquareToHide = (square: Square) => {
@@ -192,11 +197,12 @@ export default function Board({
           currentPlayerMoves.filter((move) => move.piece.id === piece.id);
         moves &&
           moves.forEach((move) => {
-            highlighter.setLegalMoveHighlighterState(move);
+            highlighter.setLegalMoveHighlights(move);
           });
       },
       onDrop({ source, location }) {
-        highlighter.clearLegalMoveHighlighterState();
+        highlighter.clearLegalMoveHighlights();
+        highlighter.clearSelectedPieceHighlight();
         if (showPromotionPanel) handleShowPromotionPanel(false);
         const destination = location.current.dropTargets[0];
         if (!destination) {
@@ -274,6 +280,21 @@ export default function Board({
       )}
       {<Arrow {...highlighter.highlighterState.arrowCoordinates} />}
       {<Circle {...highlighter.highlighterState.circleCoordinates} />}
+      {highlighter.highlightedSquares.arrowsDrawnOnSquares.map(
+        (arrow, index) => (
+          <Arrow key={`arrow-${index}`} {...arrow} />
+        )
+      )}
+      {highlighter.highlightedSquares.circlesDrawnOnSquares.map(
+        (circle, index) => (
+          <Circle key={`circle-${index}`} {...circle} />
+        )
+      )}
+      {highlighter.highlightedSquares.stockfishBestMoveArrow.map(
+        (arrow, index) => (
+          <Arrow key={`stockfish-arrow-${index}`} {...arrow} />
+        )
+      )}
       {board.map((row, rowIndex) =>
         row.map((square, colIndex) => (
           <ChessSquare

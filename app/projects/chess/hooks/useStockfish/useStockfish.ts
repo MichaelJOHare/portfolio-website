@@ -4,6 +4,10 @@ import {
   ENGINE_IS_LOADED,
   ENGINE_IS_READY,
   FOUND_BEST_MOVE,
+  INFORMS_CURRENT_MOVE,
+  INFORMS_DEPTH,
+  INFORMS_MATE,
+  INFORMS_SCORE,
   IS_SYSTEM_MESSAGE,
 } from "./messages";
 import { useEngine } from "./useEngine";
@@ -44,11 +48,12 @@ export const useStockfish = ({
     command: commandEngine,
     terminateEngine,
   } = useEngine(filepath);
-  /*   const { setHandler: setEvalerHandler, command: commandEvaler } =
-    useEngine(filepath); */
   const [status, setStatus] = useState(ChessEngineStatus.Loading);
   const [depth, setDepth] = useState<number | null>(null);
-  const [move, setMove] = useState<ChessEngineMove>(null);
+  const [lastDepthUpdate, setLastDepthUpdate] = useState(0);
+  const [lastArrowUpdate, setLastArrowUpdate] = useState(0);
+  const [bestMove, setBestMove] = useState<ChessEngineMove>(null);
+  const [currentMove, setCurrentMove] = useState<ChessEngineMove>(null);
   const isReady = status === ChessEngineStatus.Ready;
   const isRunning = status === ChessEngineStatus.Running;
 
@@ -77,39 +82,84 @@ export const useStockfish = ({
     [commandEngine]
   );
 
+  const stopAnalysis = useCallback(() => {
+    commandEngine("stop");
+  }, [commandEngine]);
+
   const findMove = useCallback(
     (fen: string) => {
       if (isRunning) {
         return;
       }
       setStatus(ChessEngineStatus.Running);
-      setMove(null);
+      setBestMove(null);
+      setCurrentMove(null);
       commandEngine(`position fen ${fen}`);
       commandEngine(`go depth ${depth}`);
     },
     [commandEngine, depth, isRunning]
   );
 
-  const handleEngineMessage = useCallback((event: MessageEvent) => {
-    const line = typeof event === "object" ? event.data : event;
-    console.log(line);
-    if (FOUND_BEST_MOVE.test(line)) {
-      const [, from, to, promotion] = line.match(FOUND_BEST_MOVE);
-      setMove({ from, to, promotion });
-      setStatus(ChessEngineStatus.Ready);
-    }
-    if (ENGINE_IS_READY.test(line)) {
-      setStatus(ChessEngineStatus.Ready);
-      return;
-    }
-    if (ENGINE_IS_LOADED.test(line)) {
-      setStatus(ChessEngineStatus.Loaded);
-      return;
-    }
-    if (IS_SYSTEM_MESSAGE.test(line)) {
-      return;
-    }
-  }, []);
+  const handleEngineMessage = useCallback(
+    (event: MessageEvent) => {
+      const line = typeof event === "object" ? event.data : event;
+      console.log(line);
+      if (INFORMS_DEPTH.test(line)) {
+        const currentDepth = parseInt(line.match(INFORMS_DEPTH)[1], 10);
+        const currentTime = Date.now();
+
+        if (
+          currentDepth === 1 ||
+          (currentDepth - lastDepthUpdate >= 3 &&
+            currentTime - lastArrowUpdate >= 3000)
+        ) {
+          const moveData = line.match(INFORMS_CURRENT_MOVE);
+          const from = moveData[1].substring(0, 2);
+          const to = moveData[1].substring(2, 4);
+          setCurrentMove({ from: from, to: to });
+          setLastDepthUpdate(currentDepth);
+          setLastArrowUpdate(currentTime);
+        }
+      }
+      if (FOUND_BEST_MOVE.test(line)) {
+        const [, from, to, promotion] = line.match(FOUND_BEST_MOVE);
+        setCurrentMove(null);
+        setBestMove({ from, to, promotion });
+        setStatus(ChessEngineStatus.Ready);
+      }
+      if (ENGINE_IS_READY.test(line)) {
+        setStatus(ChessEngineStatus.Ready);
+        return;
+      }
+      if (ENGINE_IS_LOADED.test(line)) {
+        setStatus(ChessEngineStatus.Loaded);
+        return;
+      }
+      if (IS_SYSTEM_MESSAGE.test(line)) {
+        return;
+      }
+      if (INFORMS_SCORE.test(line) || INFORMS_MATE.test(line)) {
+        const evalGauge = document.getElementById("eval-gauge");
+        if (evalGauge) {
+          let evalValue = parseInt(line.match(INFORMS_SCORE)[2], 10);
+          let evalProgress = 50;
+          const evalCap = 500;
+
+          if (evalValue > evalCap) evalValue = evalCap;
+          if (evalValue < -evalCap) evalValue = -evalCap;
+
+          evalProgress = ((evalValue + evalCap) / (2 * evalCap)) * 100;
+          evalProgress = Math.max(0, Math.min(100, evalProgress));
+          evalGauge.setAttribute("value", evalProgress.toString());
+
+          if (INFORMS_MATE.test(line)) {
+            evalGauge.setAttribute("value", "100");
+          }
+        }
+      }
+    },
+    [lastArrowUpdate, lastDepthUpdate]
+  );
 
   const initializeEngine = useCallback(() => {
     initializeWorker(filepath);
@@ -144,7 +194,9 @@ export const useStockfish = ({
   }, [cleanUpEngine]);
 
   return {
-    move,
+    currentMove,
+    bestMove,
+    stopAnalysis,
     findMove,
     initializeEngine,
     cleanUpEngine,

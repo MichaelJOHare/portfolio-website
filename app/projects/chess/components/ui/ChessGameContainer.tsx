@@ -8,6 +8,7 @@ import GameProvider from "../../providers/GameProvider";
 import {
   Square,
   HighlighterState,
+  HighlightedSquares,
   ArrowProps,
   CircleProps,
   Move,
@@ -29,80 +30,123 @@ export default function ChessGameContainer() {
       cy: 0,
     },
   });
-
-  /*   const [highlightedSquares, setHighlightedSquares] =
+  const [highlightedSquares, setHighlightedSquares] =
     useState<HighlightedSquares>({
-      drawnOnSquares: [],
-      stockfishBestMoveSquares: [],
-    }); */ // Use to track which are drawn and which are analysis arrows ->
-  //                  drawn arrows removed on left click, analysis arrows stay until move made/analysis toggled off
+      arrowsDrawnOnSquares: [],
+      circlesDrawnOnSquares: [],
+      stockfishBestMoveArrow: [],
+    });
 
-  const setLegalMoveHighlighterState = (newLegalMoveSquare: Move) => {
-    setHighlighterState((prevState) => ({
-      ...prevState,
-      legalMoveSquares: [...prevState.legalMoveSquares, newLegalMoveSquare],
-    }));
-  };
-
-  const clearLegalMoveHighlighterState = () => {
-    setHighlighterState((prevState) => ({
-      ...prevState,
-      legalMoveSquares: [],
-    }));
-  };
-
-  const setSelectedPieceHighlighterState = (piece: Piece) => {
-    setHighlighterState((prevState) => ({
-      ...prevState,
-      selectedPiece: piece,
-    }));
-  };
-
-  const clearSelectedPieceHighlighterState = () => {
-    setHighlighterState((prevState) => ({
-      ...prevState,
-      selectedPiece: undefined,
-    }));
-  };
-
-  const setArrowHighlighterState = (newArrowCoords: ArrowProps) => {
+  const setTempArrow = (newArrowCoords: ArrowProps) => {
     setHighlighterState((prevState) => ({
       ...prevState,
       arrowCoordinates: newArrowCoords,
     }));
   };
 
-  const setCircleHighlighterState = (newCircleCoords: CircleProps) => {
-    setHighlighterState((prevState) => ({
-      ...prevState,
-      circleCoordinates: newCircleCoords,
-    }));
-  };
-
-  const clearArrowHighlights = () => {
+  const clearTempArrow = () => {
     setHighlighterState((prevState) => ({
       ...prevState,
       arrowCoordinates: { x1: 0, y1: 0, x2: 0, y2: 0 },
     }));
   };
 
-  const clearCircleHighlights = () => {
+  const addDrawnArrow = (arrowCoords: ArrowProps) => {
+    clearTempArrow();
+    setHighlightedSquares((prevState) => ({
+      ...prevState,
+      arrowsDrawnOnSquares: [...prevState.arrowsDrawnOnSquares, arrowCoords],
+    }));
+  };
+
+  const setTempCircle = (newCircleCoords: CircleProps) => {
+    setHighlighterState((prevState) => ({
+      ...prevState,
+      circleCoordinates: newCircleCoords,
+    }));
+  };
+
+  const clearTempCircle = () => {
     setHighlighterState((prevState) => ({
       ...prevState,
       circleCoordinates: { cx: 0, cy: 0 },
     }));
   };
 
-  const clearArrowCircleHighlights = useCallback(() => {
-    clearArrowHighlights();
-    clearCircleHighlights();
+  const addDrawnCircle = (circleCoords: CircleProps) => {
+    clearTempCircle();
+    setHighlightedSquares((prevState) => ({
+      ...prevState,
+      circlesDrawnOnSquares: [...prevState.circlesDrawnOnSquares, circleCoords],
+    }));
+  };
+
+  const addStockfishBestMoveArrow = useCallback((arrowCoords: ArrowProps) => {
+    setHighlightedSquares((prevState) => ({
+      ...prevState,
+      stockfishBestMoveArrow: [
+        ...prevState.stockfishBestMoveArrow,
+        arrowCoords,
+      ],
+    }));
   }, []);
 
+  const clearStockfishBestMoveArrow = useCallback(() => {
+    setHighlightedSquares((prevState) => ({
+      ...prevState,
+      stockfishBestMoveArrow: [],
+    }));
+  }, []);
+
+  const clearDrawnArrowCircles = () => {
+    setHighlightedSquares((prevState) => ({
+      ...prevState,
+      arrowsDrawnOnSquares: [],
+      circlesDrawnOnSquares: [],
+    }));
+  };
+
+  const clearAllDrawnOnSquares = () => {
+    setHighlightedSquares({
+      arrowsDrawnOnSquares: [],
+      circlesDrawnOnSquares: [],
+      stockfishBestMoveArrow: [],
+    });
+  };
+
+  const setLegalMoveHighlights = (newLegalMoveSquare: Move) => {
+    setHighlighterState((prevState) => ({
+      ...prevState,
+      legalMoveSquares: [...prevState.legalMoveSquares, newLegalMoveSquare],
+    }));
+  };
+
+  const clearLegalMoveHighlights = () => {
+    setHighlighterState((prevState) => ({
+      ...prevState,
+      legalMoveSquares: [],
+    }));
+  };
+
+  const setSelectedPieceHighlight = (piece: Piece) => {
+    setHighlighterState((prevState) => ({
+      ...prevState,
+      selectedPiece: piece,
+    }));
+  };
+
+  const clearSelectedPieceHighlight = () => {
+    setHighlighterState((prevState) => ({
+      ...prevState,
+      selectedPiece: undefined,
+    }));
+  };
+
   const clearAllHighlights = useCallback(() => {
-    clearArrowCircleHighlights();
-    clearLegalMoveHighlighterState();
-    clearSelectedPieceHighlighterState();
-  }, [clearArrowCircleHighlights]);
+    clearAllDrawnOnSquares();
+    clearLegalMoveHighlights();
+    clearSelectedPieceHighlight();
+  }, []);
 
   const handleStockfishClassicalChange = (isChecked: boolean) => {
     setStockfishClassicalChecked(isChecked);
@@ -124,18 +168,27 @@ export default function ChessGameContainer() {
 
   const highlighter = {
     highlighterState,
-    setSelectedPieceHighlighterState,
-    clearSelectedPieceHighlighterState,
-    setLegalMoveHighlighterState,
-    clearLegalMoveHighlighterState,
-    setArrowHighlighterState,
-    setCircleHighlighterState,
-    clearArrowCircleHighlights,
+    highlightedSquares,
+    setSelectedPieceHighlight,
+    clearSelectedPieceHighlight,
+    setLegalMoveHighlights,
+    clearLegalMoveHighlights,
+    setTempArrow,
+    addDrawnArrow,
+    addStockfishBestMoveArrow,
+    clearStockfishBestMoveArrow,
+    setTempCircle,
+    addDrawnCircle,
+    clearDrawnArrowCircles,
+    clearAllDrawnOnSquares,
   };
 
   useEffect(() => {
     if (!stockfishClassicalChecked && !stockfishNnueChecked) {
-      clearArrowHighlights(); // change to just stockfish arrows once implemented
+      setHighlightedSquares((prevState) => ({
+        ...prevState,
+        stockfishBestMoveArrow: [],
+      }));
     }
   }, [stockfishClassicalChecked, stockfishNnueChecked]);
 
@@ -160,6 +213,7 @@ export default function ChessGameContainer() {
             }`}
           >
             <progress
+              id="eval-gauge"
               className="transform -rotate-90 translate-y-[90vmin] lg:translate-y-[70vmin] origin-top-left w-[90vmin] h-5 lg:w-[70vmin] progress-filled:bg-slate-100 progress-unfilled:bg-stone-900"
               value={50}
               max={100}

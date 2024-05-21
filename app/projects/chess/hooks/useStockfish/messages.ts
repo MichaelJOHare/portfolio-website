@@ -6,10 +6,14 @@ export const OPTION_IS_SET = /^option name/;
 
 export const IS_SYSTEM_MESSAGE = /^(?:(?:uci|ready)ok$|option name)/;
 
+export const INFORMS_CURRENT_MOVE = /pv (\w{2}\w{2})/;
+
 export const FOUND_BEST_MOVE = /^bestmove ([a-h][1-8])([a-h][1-8])([qrbn])?/;
 
 export const INFORMS_DEPTH = /^info .*\bdepth (\d+) .*\bnps (\d+)/;
 
 export const INFORMS_SCORE = /^info .*\bscore (\w+) (-?\d+)/;
+
+export const INFORMS_MATE = /score mate (\-?\d+)/;
 
 export const INFORMS_BOUND_SCORE = /\b(upper|lower)bound\b/;
