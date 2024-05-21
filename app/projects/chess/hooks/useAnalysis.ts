@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useGameContext } from "./useGameContext";
 import { useStockfish, AnalysisType, ChessEngineMove } from "./useStockfish";
 import { toFEN, getSquareFromNotation } from "../utils";
-import { ArrowProps } from "../types";
+import { ArrowProps, PlayerColor } from "../types";
 
 export const useAnalysis = (
   isStockfishClassicalChecked: boolean,
@@ -14,6 +14,7 @@ export const useAnalysis = (
   addStockfishBestMoveArrow: (arrowCoordinates: ArrowProps) => void,
   clearStockfishBestMoveArrow: () => void
 ) => {
+  const [evalGauge, setEvalGauge] = useState<HTMLElement | null>(null);
   const [storedFen, setStoredFen] = useState("");
   const {
     board,
@@ -31,6 +32,7 @@ export const useAnalysis = (
   const {
     currentMove: currentEngineMove,
     bestMove: bestEngineMove,
+    evalCentipawn,
     findMove,
     stopAnalysis,
     initializeEngine,
@@ -79,6 +81,7 @@ export const useAnalysis = (
   useEffect(() => {
     if (analysisType && !engineInitialized) {
       initializeEngine();
+      setEvalGauge(document.getElementById("eval-gauge"));
       setEngineInitState(true);
     } else if (!analysisType && engineInitialized) {
       cleanUpEngine();
@@ -124,6 +127,23 @@ export const useAnalysis = (
     clearStockfishBestMoveArrow,
     getArrowFromMove,
   ]);
+  useEffect(() => {
+    if (evalGauge) {
+      if (
+        players[currentPlayerIndex].color === PlayerColor.BLACK &&
+        evalCentipawn < 50
+      ) {
+        evalGauge.setAttribute("value", (100 - evalCentipawn).toString());
+      } else if (
+        players[currentPlayerIndex].color === PlayerColor.BLACK &&
+        evalCentipawn > 50
+      ) {
+        evalGauge.setAttribute("value", (evalCentipawn * -1).toString());
+      } else {
+        evalGauge.setAttribute("value", evalCentipawn.toString());
+      }
+    }
+  }, [evalCentipawn]);
 
   return { stopAnalysis };
 };

@@ -34,6 +34,8 @@ export default function GameLog({
     setShowFenTextArea(!showFenTextArea);
   };
 
+  const updateStateOnFenChange = () => {};
+
   const handleResetGame = () => {};
 
   const onMoveClick = (index: number) => {
@@ -224,6 +226,7 @@ export default function GameLog({
               halfMoveClock,
               fullMoveNumber
             )}
+            onChange={updateStateOnFenChange}
             /* add on move -> update fen, on user change -> update board/state */
           />
         )}

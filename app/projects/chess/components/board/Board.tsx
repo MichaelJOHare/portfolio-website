@@ -112,7 +112,13 @@ export default function Board({
         highlighter.clearAllDrawnOnSquares();
       }
     },
-    [handleMove, handleShowPromotionPanel, handleSquaresToHide, highlighter]
+    [
+      handleMove,
+      handleShowPromotionPanel,
+      handleSquaresToHide,
+      stopAnalysis,
+      highlighter,
+    ]
   );
 
   const handlePieceSelection = (row: number, col: number) => {

@@ -52,6 +52,7 @@ export const useStockfish = ({
   const [depth, setDepth] = useState<number | null>(null);
   const [lastDepthUpdate, setLastDepthUpdate] = useState(0);
   const [lastArrowUpdate, setLastArrowUpdate] = useState(0);
+  const [evalCentipawn, setEvalCentipawn] = useState(50);
   const [bestMove, setBestMove] = useState<ChessEngineMove>(null);
   const [currentMove, setCurrentMove] = useState<ChessEngineMove>(null);
   const isReady = status === ChessEngineStatus.Ready;
@@ -68,7 +69,6 @@ export const useStockfish = ({
 
   const setAnalysisType = useCallback(
     (analysisType: AnalysisType | null) => {
-      console.log(analysisType);
       const threads =
         analysisType === AnalysisType.NNUE ? calculateThreadsForNNUE() : 1;
       commandEngine(`setoption name Threads value ${threads}`);
@@ -146,22 +146,19 @@ export const useStockfish = ({
         return;
       }
       if (INFORMS_SCORE.test(line) || INFORMS_MATE.test(line)) {
-        const evalGauge = document.getElementById("eval-gauge");
-        if (evalGauge) {
-          let evalValue = parseInt(line.match(INFORMS_SCORE)[2], 10);
-          let evalProgress = 50;
-          const evalCap = 500;
+        let evalValue = parseInt(line.match(INFORMS_SCORE)[2], 10);
+        let evalProgress = 50;
+        const evalCap = 500;
 
-          if (evalValue > evalCap) evalValue = evalCap;
-          if (evalValue < -evalCap) evalValue = -evalCap;
+        if (evalValue > evalCap) evalValue = evalCap;
+        if (evalValue < -evalCap) evalValue = -evalCap;
 
-          evalProgress = ((evalValue + evalCap) / (2 * evalCap)) * 100;
-          evalProgress = Math.max(0, Math.min(100, evalProgress));
-          evalGauge.setAttribute("value", evalProgress.toString());
+        evalProgress = ((evalValue + evalCap) / (2 * evalCap)) * 100;
+        evalProgress = Math.max(0, Math.min(100, evalProgress));
+        setEvalCentipawn(evalProgress);
 
-          if (INFORMS_MATE.test(line)) {
-            evalGauge.setAttribute("value", "100");
-          }
+        if (INFORMS_MATE.test(line)) {
+          setEvalCentipawn(100);
         }
       }
     },
@@ -209,6 +206,7 @@ export const useStockfish = ({
   return {
     currentMove,
     bestMove,
+    evalCentipawn,
     stopAnalysis,
     findMove,
     initializeEngine,
