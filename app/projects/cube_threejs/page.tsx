@@ -1,13 +1,5 @@
-import Script from "next/script";
+import Cube from "../../components/Cube";
 
 export default function Page() {
-  return (
-    <Script
-      type="module"
-      src="/assets/index-0f767c03.js"
-      strategy="lazyOnload"
-      defer={false}
-      crossOrigin="anonymous"
-    ></Script>
-  );
+  return <Cube></Cube>;
 }

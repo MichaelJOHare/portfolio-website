@@ -30,7 +30,7 @@ export default function Button({
           undoMove();
           handleSquaresToHide([]);
           handleShowPromotionPanel(false);
-          clearAllHighlights();
+          clearAllHighlights(); // find way to conditionally clear highlights based on move history length
         }}
         className="w-full text-white bg-zinc-700 hover:bg-zinc-900 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm p-2.5 text-center inline-flex items-center me-1.5 dark:bg-zinc-900 dark:hover:bg-zinc-600 dark:focus:ring-blue-800"
       >

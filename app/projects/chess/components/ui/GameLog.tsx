@@ -40,10 +40,16 @@ export default function GameLog({
 
   const updateStateOnFenChange = () => {};
 
-  const handleResetGame = () => {
+  const resetState = () => {
     resetGame();
     resetBoard();
     initializeBoard();
+    // fix this in future
+  };
+
+  const handleResetGame = () => {
+    // resetState();
+    location.reload();
   };
 
   const onMoveClick = (index: number) => {
