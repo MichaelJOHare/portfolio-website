@@ -11,7 +11,6 @@ import {
 
 export const useChessboardHighlighter = (): Highlighter => {
   const [isDrawing, setIsDrawing] = useState(false);
-  const [circleDrawn, setCircleDrawn] = useState(false);
   const [hasMovedOutOfSquare, setHasMovedOutOfSquare] = useState(false);
   const [originalSquare, setOriginalSquare] = useState<{
     row: number;
@@ -61,7 +60,6 @@ export const useChessboardHighlighter = (): Highlighter => {
             y2: currentSquare.row * 12.5 + 6.25,
           });
           setHasMovedOutOfSquare(true);
-          setCircleDrawn(false);
         } else if (isInOriginalSquare && hasMovedOutOfSquare) {
           clearTempArrow();
           setTempCircle({
@@ -69,7 +67,6 @@ export const useChessboardHighlighter = (): Highlighter => {
             cy: originalSquare.row * 12.5 + 6.25,
           });
           setHasMovedOutOfSquare(false);
-          setCircleDrawn(true);
         }
       }
     }
@@ -78,7 +75,7 @@ export const useChessboardHighlighter = (): Highlighter => {
   const onMouseUp = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     if (e.button === 2 && isDrawing) {
       const currentSquare = getSquareFromCoordinates(e.clientX, e.clientY);
-      if (!hasMovedOutOfSquare && !circleDrawn && originalSquare) {
+      if (!hasMovedOutOfSquare && originalSquare) {
         const circleCoords = {
           cx: originalSquare.col * 12.5 + 6.25,
           cy: originalSquare.row * 12.5 + 6.25,
@@ -106,7 +103,6 @@ export const useChessboardHighlighter = (): Highlighter => {
       setIsDrawing(false);
       setHasMovedOutOfSquare(false);
       setOriginalSquare(undefined);
-      setCircleDrawn(false);
     }
   };
 
@@ -118,9 +114,8 @@ export const useChessboardHighlighter = (): Highlighter => {
       const relY = y - rect.top;
       const squareSize = board.clientWidth / 8;
 
-      const dpi = window.devicePixelRatio || 1;
-      const scaleX = (rect.width * dpi) / board.offsetWidth;
-      const scaleY = (rect.height * dpi) / board.offsetHeight;
+      const scaleX = rect.width / board.offsetWidth;
+      const scaleY = rect.height / board.offsetHeight;
       let col = Math.floor((relX * scaleX) / squareSize);
       let row = Math.floor((relY * scaleY) / squareSize);
       const square = { row, col };
