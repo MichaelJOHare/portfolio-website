@@ -6,17 +6,20 @@ import RandomKing from "@/public/assets/images/random-king.svg";
 interface StockfishOptionsModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onPlay: (strengthLevel: number, playerColor: number) => void;
   analysisToggles: ReactNode;
 }
 
 export const StockfishOptionsModal = ({
   isOpen,
   onClose,
+  onPlay,
   analysisToggles,
 }: StockfishOptionsModalProps) => {
   const menuRef = useRef<HTMLDivElement>(null);
   const [currentStrengthLevel, setCurrentStrengthLevel] = useState(0);
   const [currentColorChoice, setCurrentColorChoice] = useState(0);
+  const [playButtonClicked, setPlayButtonClicked] = useState(false);
   const strengthLevels = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
   useEffect(() => {
@@ -38,7 +41,7 @@ export const StockfishOptionsModal = ({
   return (
     <div
       className={`absolute top-0 left-0 w-full h-full mt-2 pb-2 flex items-center justify-center bg-opacity-50 transition-opacity ${
-        isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        isOpen ? "opacity-100 z-20" : "opacity-0 pointer-events-none z-0"
       }`}
     >
       <div className="w-full h-full relative">
@@ -107,7 +110,11 @@ export const StockfishOptionsModal = ({
                     key={level}
                     className={`border px-1 text-2xl hover:bg-slate-300 hover:text-slate-600 ${
                       level !== 10 ? "mr-1" : ""
-                    } ${level === currentStrengthLevel ? "bg-slate-300" : ""}`}
+                    } ${
+                      level === currentStrengthLevel && !playButtonClicked
+                        ? "bg-slate-300"
+                        : ""
+                    }`}
                     onClick={() => setCurrentStrengthLevel(level)}
                   >
                     {level}
@@ -121,16 +128,20 @@ export const StockfishOptionsModal = ({
                 <button
                   type="button"
                   className={`border hover:bg-slate-300 ${
-                    currentColorChoice === 1 ? "bg-slate-300" : ""
+                    currentColorChoice === 1 && !playButtonClicked
+                      ? "bg-slate-300"
+                      : ""
                   }`}
-                  onClick={() => setCurrentColorChoice(1)}
+                  onClick={() => setCurrentColorChoice(0)}
                 >
                   <WhiteKing />
                 </button>
                 <button
                   type="button"
                   className={`border mx-2 hover:bg-slate-300 ${
-                    currentColorChoice === 2 ? "bg-slate-300" : ""
+                    currentColorChoice === 2 && !playButtonClicked
+                      ? "bg-slate-300"
+                      : ""
                   }`}
                   onClick={() => setCurrentColorChoice(2)}
                 >
@@ -139,9 +150,11 @@ export const StockfishOptionsModal = ({
                 <button
                   type="button"
                   className={`border hover:bg-slate-300 ${
-                    currentColorChoice === 3 ? "bg-slate-300" : ""
+                    currentColorChoice === 3 && !playButtonClicked
+                      ? "bg-slate-300"
+                      : ""
                   }`}
-                  onClick={() => setCurrentColorChoice(3)}
+                  onClick={() => setCurrentColorChoice(1)}
                 >
                   <BlackKing />
                 </button>
@@ -150,8 +163,17 @@ export const StockfishOptionsModal = ({
                 <button
                   type="button"
                   className="text-3xl border w-full hover:bg-slate-300"
+                  onClick={() => {
+                    setPlayButtonClicked(!playButtonClicked);
+                    if (!playButtonClicked) {
+                      onPlay(currentStrengthLevel, currentColorChoice);
+                      onClose();
+                    } else {
+                      onPlay(0, 0);
+                    }
+                  }}
                 >
-                  Play
+                  {playButtonClicked ? "Stop" : "Play"}
                 </button>
               </div>
             </div>

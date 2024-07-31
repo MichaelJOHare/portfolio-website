@@ -1,5 +1,5 @@
 export const calculateDepth = (skillLevel: number): number | null =>
-  skillLevel < 15 ? Math.ceil((skillLevel + 1) / 5) : 24;
+  skillLevel < 15 ? Math.ceil((skillLevel + 1) / 5) : 22;
 
 export const calculateThreadsForNNUE = () => {
   let threads = navigator.hardwareConcurrency;

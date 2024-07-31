@@ -13,6 +13,7 @@ export type GameLogProps = {
   stockfishNnueChecked: boolean;
   onStockfishClassicalChange: (isChecked: boolean) => void;
   onStockfishNnueChange: (isChecked: boolean) => void;
+  onPlayButtonClick: (strengthLevel: number, playerColor: number) => void;
   resetBoard: () => void;
 };
 
@@ -21,6 +22,7 @@ export default function GameLog({
   stockfishNnueChecked,
   onStockfishClassicalChange,
   onStockfishNnueChange,
+  onPlayButtonClick,
   resetBoard,
 }: GameLogProps) {
   const {
@@ -197,6 +199,7 @@ export default function GameLog({
               <StockfishOptionsModal
                 isOpen={showStockfishOptions}
                 onClose={() => setShowStockfishOptions(false)}
+                onPlay={onPlayButtonClick}
                 analysisToggles={StockfishAnalysisToggles({
                   stockfishClassicalChecked,
                   stockfishNnueChecked,

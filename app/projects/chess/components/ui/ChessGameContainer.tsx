@@ -15,15 +15,33 @@ export default function ChessGameContainer() {
   const [stockfishNnueChecked, setStockfishNnueChecked] = useState(false);
   const [squaresToHide, setSquaresToHide] = useState<Square[]>([]);
   const [showPromotionPanel, setShowPromotionPanel] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [computerOpponentOptions, setComputerOpponentOptions] = useState<
+    number[]
+  >([]);
 
   const handleStockfishClassicalChange = (isChecked: boolean) => {
     setStockfishClassicalChecked(isChecked);
     setStockfishNnueChecked(false);
+    setIsPlaying(false);
   };
 
   const handleStockfishNnueChange = (isChecked: boolean) => {
     setStockfishNnueChecked(isChecked);
     setStockfishClassicalChecked(false);
+    setIsPlaying(false);
+  };
+
+  const handlePlayButtonClick = (
+    strengthLevel: number,
+    playerColor: number
+  ) => {
+    const playersColor =
+      playerColor === 2 ? (Math.random() < 0.5 ? 0 : 1) : playerColor;
+    setComputerOpponentOptions([strengthLevel, playersColor]);
+    setStockfishClassicalChecked(false);
+    setStockfishNnueChecked(false);
+    setIsPlaying(!isPlaying);
   };
 
   const handleSquaresToHide = (squares: Square[]) => {
@@ -57,6 +75,8 @@ export default function ChessGameContainer() {
           <Board
             isStockfishClassicalChecked={stockfishClassicalChecked}
             isStockfishNnueChecked={stockfishNnueChecked}
+            playButtonClicked={isPlaying}
+            computerOpponentOptions={computerOpponentOptions}
             highlighter={highlighter}
             squaresToHide={squaresToHide}
             handleSquaresToHide={handleSquaresToHide}
@@ -117,6 +137,7 @@ export default function ChessGameContainer() {
               stockfishNnueChecked={stockfishNnueChecked}
               onStockfishClassicalChange={handleStockfishClassicalChange}
               onStockfishNnueChange={handleStockfishNnueChange}
+              onPlayButtonClick={handlePlayButtonClick}
               resetBoard={resetBoard}
             />
           </div>

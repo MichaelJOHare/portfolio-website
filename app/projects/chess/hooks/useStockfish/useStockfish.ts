@@ -28,7 +28,7 @@ export enum AnalysisType {
 export interface UseStockfishOptions {
   analysisType: AnalysisType | null;
   filepath: string;
-  skillLevel?: number;
+  skillLevel: number;
 }
 
 export type ChessEngineMove = {
@@ -39,7 +39,7 @@ export type ChessEngineMove = {
 
 export const useStockfish = ({
   analysisType,
-  skillLevel = 20,
+  skillLevel,
   filepath,
 }: UseStockfishOptions) => {
   const {
@@ -60,7 +60,8 @@ export const useStockfish = ({
 
   const setSkillLevel = useCallback(
     (skillLevel: number) => {
-      const depth = calculateDepth(skillLevel);
+      const depth = calculateDepth(skillLevel * 2);
+      console.log(depth, skillLevel);
       setDepth(depth);
       commandEngine(`setoption name Skill Level value ${skillLevel}`);
     },

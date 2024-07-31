@@ -29,6 +29,8 @@ import { useAnalysis } from "../../hooks/useAnalysis";
 export default function Board({
   isStockfishClassicalChecked,
   isStockfishNnueChecked,
+  playButtonClicked,
+  computerOpponentOptions,
   highlighter,
   squaresToHide,
   showPromotionPanel,
@@ -68,6 +70,8 @@ export default function Board({
   const { stopAnalysis } = useAnalysis(
     isStockfishClassicalChecked,
     isStockfishNnueChecked,
+    playButtonClicked,
+    computerOpponentOptions,
     boardState.engineInitialized,
     boardState.engineRunning,
     setEngineInitState,

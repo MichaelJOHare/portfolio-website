@@ -27,11 +27,11 @@ export const PromotionPanel = ({
   onPromotionSelect,
 }: PromotionPanelProps) => {
   const [matches, setMatches] = useState(
-    window.matchMedia("(min-width: 768px)").matches
+    window.matchMedia("(min-width: 1024px)").matches
   );
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(min-width: 768px)");
+    const mediaQuery = window.matchMedia("(min-width: 1024px)");
     const handleChange = (e: MediaQueryListEvent) => setMatches(e.matches);
 
     mediaQuery.addEventListener("change", handleChange);
@@ -72,7 +72,13 @@ export const PromotionPanel = ({
           className="absolute w-[11.25vmin] h-[11.25vmin] cursor-pointer lg:w-[8.75vmin] lg:h-[8.75vmin]"
           style={{
             top: `${
-              color === PlayerColor.WHITE ? index * 8.75 : 35 + index * 8.75
+              color === PlayerColor.WHITE
+                ? matches
+                  ? index * 8.75
+                  : index * 11
+                : matches
+                ? 35 + index * 8.75
+                : 45 + index * 11
             }vmin`,
             left: `${
               positions && (matches ? positions.leftLg : positions.left)

@@ -17,6 +17,8 @@ export type SquareProps = {
 export type BoardProps = {
   isStockfishClassicalChecked: boolean;
   isStockfishNnueChecked: boolean;
+  playButtonClicked: boolean;
+  computerOpponentOptions: number[];
   highlighter: Highlighter;
   squaresToHide: Square[];
   showPromotionPanel: boolean;

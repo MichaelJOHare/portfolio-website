@@ -7,6 +7,8 @@ import { ArrowProps, PlayerColor } from "../types";
 export const useAnalysis = (
   isStockfishClassicalChecked: boolean,
   isStockfishNnueChecked: boolean,
+  playButtonClicked: boolean,
+  computerOpponentOptions: number[],
   engineInitialized: boolean,
   engineRunning: boolean,
   setEngineInitState: (isInitialized: boolean) => void,
@@ -39,7 +41,7 @@ export const useAnalysis = (
     cleanUpEngine,
   } = useStockfish({
     analysisType,
-    skillLevel: 20, // get from modal
+    skillLevel: computerOpponentOptions[0] || 20,
     filepath: "/stockfish/stockfish-nnue-16.js",
   });
 
@@ -83,12 +85,16 @@ export const useAnalysis = (
       initializeEngine();
       setEvalGauge(document.getElementById("eval-gauge"));
       setEngineInitState(true);
-    } else if (!analysisType && engineInitialized) {
+    } else if (playButtonClicked && !engineInitialized) {
+      initializeEngine();
+      setEngineInitState(true);
+    } else if (!analysisType && !playButtonClicked && engineInitialized) {
       cleanUpEngine();
       setEngineInitState(false);
     }
   }, [
     analysisType,
+    playButtonClicked,
     engineInitialized,
     setEngineInitState,
     initializeEngine,
@@ -101,12 +107,16 @@ export const useAnalysis = (
       findMove(currentFen);
       setStoredFen(currentFen);
       setEngineRunningState(true);
-    } else if (engineRunning && currentEngineMove) {
+    } else if (engineRunning && currentEngineMove && !playButtonClicked) {
       clearStockfishBestMoveArrow();
       getArrowFromMove(currentEngineMove);
-    } else if (engineRunning && bestEngineMove) {
+    } else if (engineRunning && bestEngineMove && !playButtonClicked) {
       clearStockfishBestMoveArrow();
       getArrowFromMove(bestEngineMove);
+    } else if (
+      (engineRunning && bestEngineMove && playButtonClicked) ||
+      (engineRunning && bestEngineMove && !playButtonClicked)
+    ) {
       setEngineRunningState(false);
     }
     /* else if (engineRunning && !engineMove && something to check undone after mate ) {
