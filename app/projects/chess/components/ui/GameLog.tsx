@@ -6,7 +6,7 @@ import { MoveType, PieceType, PlayerColor } from "../../types";
 import { squareToString, getPieceUnicode } from "../../utils";
 import { toFEN } from "../../utils/FEN";
 import { StockfishOptionsModal } from "./StockfishOptionsModal";
-import { StockfishOptionsMenu } from "./StockfishOptionsMenu";
+import { StockfishAnalysisToggles } from "./StockfishAnalysisToggles";
 
 export type GameLogProps = {
   stockfishClassicalChecked: boolean;
@@ -197,13 +197,13 @@ export default function GameLog({
               <StockfishOptionsModal
                 isOpen={showStockfishOptions}
                 onClose={() => setShowStockfishOptions(false)}
-                items={StockfishOptionsMenu({
+                analysisToggles={StockfishAnalysisToggles({
                   stockfishClassicalChecked,
                   stockfishNnueChecked,
                   onStockfishClassicalChange,
                   onStockfishNnueChange,
                 })}
-              ></StockfishOptionsModal>
+              />
             </div>
           </div>
           <div className="h-full flex flex-col px-4 py-2 min-h-64 bg-white rounded-b-lg dark:bg-gray-800">

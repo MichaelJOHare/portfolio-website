@@ -1,17 +1,23 @@
-import React, { useRef, useEffect, ReactNode } from "react";
+import React, { useRef, useEffect, ReactNode, useState } from "react";
+import BlackKing from "@/public/assets/images/black-king.svg";
+import WhiteKing from "@/public/assets/images/white-king.svg";
+import RandomKing from "@/public/assets/images/random-king.svg";
 
 interface StockfishOptionsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  items: ReactNode;
+  analysisToggles: ReactNode;
 }
 
 export const StockfishOptionsModal = ({
   isOpen,
   onClose,
-  items,
+  analysisToggles,
 }: StockfishOptionsModalProps) => {
   const menuRef = useRef<HTMLDivElement>(null);
+  const [currentStrengthLevel, setCurrentStrengthLevel] = useState(0);
+  const [currentColorChoice, setCurrentColorChoice] = useState(0);
+  const strengthLevels = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -77,10 +83,79 @@ export const StockfishOptionsModal = ({
           ref={menuRef}
           className="flex flex-col bg-white rounded-lg p-4 w-full h-full dark:bg-gray-700"
         >
-          <h1 className="flex self-center text-3xl pb-4 pr-4">
+          <h1 className="flex self-center text-2xl pb-4 pr-4 lg:text-3xl">
             Stockfish Options
           </h1>
-          <ul>{items}</ul>
+          <div className="flex flex-row lg:flex-col justify-around">
+            <div className="flex flex-col">
+              <h2 className="pt-4 text-2xl underline self-center">
+                Stockfish Analysis
+              </h2>
+              <ul className="pt-2 self-center">{analysisToggles}</ul>
+            </div>
+            <div className="flex flex-col">
+              <h2 className="pt-4 text-2xl underline self-center">
+                Play Versus Computer
+              </h2>
+              <h3 className="self-center pt-2 font-bold text-xl">
+                Strength level
+              </h3>
+              <ul className="self-center">
+                {strengthLevels.map((level) => (
+                  <button
+                    type="button"
+                    key={level}
+                    className={`border px-1 text-2xl hover:bg-slate-300 hover:text-slate-600 ${
+                      level !== 10 ? "mr-1" : ""
+                    } ${level === currentStrengthLevel ? "bg-slate-300" : ""}`}
+                    onClick={() => setCurrentStrengthLevel(level)}
+                  >
+                    {level}
+                  </button>
+                ))}
+              </ul>
+              <h3 className="self-center pt-2 font-bold text-xl">
+                Choose Color
+              </h3>
+              <ul className="self-center">
+                <button
+                  type="button"
+                  className={`border hover:bg-slate-300 ${
+                    currentColorChoice === 1 ? "bg-slate-300" : ""
+                  }`}
+                  onClick={() => setCurrentColorChoice(1)}
+                >
+                  <WhiteKing />
+                </button>
+                <button
+                  type="button"
+                  className={`border mx-2 hover:bg-slate-300 ${
+                    currentColorChoice === 2 ? "bg-slate-300" : ""
+                  }`}
+                  onClick={() => setCurrentColorChoice(2)}
+                >
+                  <RandomKing />
+                </button>
+                <button
+                  type="button"
+                  className={`border hover:bg-slate-300 ${
+                    currentColorChoice === 3 ? "bg-slate-300" : ""
+                  }`}
+                  onClick={() => setCurrentColorChoice(3)}
+                >
+                  <BlackKing />
+                </button>
+              </ul>
+              <div className="pt-2">
+                <button
+                  type="button"
+                  className="text-3xl border w-full hover:bg-slate-300"
+                >
+                  Play
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

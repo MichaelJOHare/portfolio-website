@@ -1,16 +1,16 @@
-interface StockfishOptionsMenuProps {
+interface StockfishAnalysisTogglesProps {
   stockfishClassicalChecked: boolean;
   stockfishNnueChecked: boolean;
   onStockfishClassicalChange: (checked: boolean) => void;
   onStockfishNnueChange: (checked: boolean) => void;
 }
 
-export const StockfishOptionsMenu = ({
+export const StockfishAnalysisToggles = ({
   stockfishClassicalChecked,
   stockfishNnueChecked,
   onStockfishClassicalChange,
   onStockfishNnueChange,
-}: StockfishOptionsMenuProps) => {
+}: StockfishAnalysisTogglesProps) => {
   return (
     <div className="flex flex-col">
       <div className="group relative">
