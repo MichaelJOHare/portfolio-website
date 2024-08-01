@@ -10,15 +10,7 @@ import {
   createCastlingMove,
   createStandardMove,
 } from "../utils";
-import {
-  ArrowProps,
-  Piece,
-  PieceType,
-  PlayerColor,
-  Square,
-  Move,
-  MoveType,
-} from "../types";
+import { ArrowProps, Piece, PieceType, PlayerColor, Square } from "../types";
 
 export const useAnalysis = (
   isStockfishClassicalChecked: boolean,
@@ -49,11 +41,31 @@ export const useAnalysis = (
     ? AnalysisType.NNUE
     : null;
 
-  const executeMove = (foundBestMove: ChessEngineMove) => {
-    if (
-      playButtonClicked &&
-      currentPlayerIndex !== computerOpponentOptions[1]
-    ) {
+  const convertNotationToSquare = useCallback(
+    (notation: string | undefined) => {
+      if (notation) {
+        const col = notation.charCodeAt(0) - "a".charCodeAt(0);
+        const row = 8 - parseInt(notation[1]);
+
+        return board[row][col];
+      }
+    },
+    [board]
+  );
+
+  const isEnPassantMove = useCallback(
+    (movingPiece: Piece, fromRowCol: Square, toRowCol: Square) => {
+      return (
+        movingPiece.type === PieceType.PAWN &&
+        Math.abs(toRowCol.col - fromRowCol.col) === 1 &&
+        isEmpty(board, fromRowCol.row, fromRowCol.col)
+      );
+    },
+    [board]
+  );
+
+  const executeMove = useCallback(
+    (foundBestMove: ChessEngineMove) => {
       const fromSquare = convertNotationToSquare(foundBestMove?.from);
       const toSquare = convertNotationToSquare(foundBestMove?.to);
       if (fromSquare && toSquare) {
@@ -118,8 +130,17 @@ export const useAnalysis = (
           }
         }
       }
-    }
-  };
+    },
+    [
+      board,
+      computerOpponentOptions,
+      convertNotationToSquare,
+      currentPlayerIndex,
+      finalizeMove,
+      isEnPassantMove,
+      playButtonClicked,
+    ]
+  );
 
   const {
     currentMove: currentEngineMove,
@@ -131,7 +152,6 @@ export const useAnalysis = (
     cleanUpEngine,
   } = useStockfish({
     analysisType,
-    executeMove,
     skillLevel: computerOpponentOptions[0] || 10,
     filepath: "/stockfish/stockfish-nnue-16.js",
   });
@@ -154,18 +174,6 @@ export const useAnalysis = (
     players,
   ]);
 
-  const isEnPassantMove = (
-    movingPiece: Piece,
-    fromRowCol: Square,
-    toRowCol: Square
-  ) => {
-    return (
-      movingPiece.type === PieceType.PAWN &&
-      Math.abs(toRowCol.col - fromRowCol.col) === 1 &&
-      isEmpty(board, fromRowCol.row, fromRowCol.col)
-    );
-  };
-
   const isCastlingMove = (
     movingPiece: Piece,
     fromRowCol: Square,
@@ -175,15 +183,6 @@ export const useAnalysis = (
       movingPiece.type === PieceType.KING &&
       Math.abs(toRowCol.col - fromRowCol.col) > 1
     );
-  };
-
-  const convertNotationToSquare = (notation: string | undefined) => {
-    if (notation) {
-      const col = notation.charCodeAt(0) - "a".charCodeAt(0);
-      const row = 8 - parseInt(notation[1]);
-
-      return board[row][col];
-    }
   };
 
   const determinePromotionType = (char: string) => {
@@ -248,13 +247,19 @@ export const useAnalysis = (
     } else if (engineRunning && currentEngineMove && !playButtonClicked) {
       clearStockfishBestMoveArrow();
       getArrowFromMove(currentEngineMove);
-    } else if (engineRunning && bestEngineMove && !playButtonClicked) {
-      clearStockfishBestMoveArrow();
-      getArrowFromMove(bestEngineMove);
-    } else if (
-      (engineRunning && bestEngineMove && playButtonClicked) ||
-      (engineRunning && bestEngineMove && !playButtonClicked)
-    ) {
+    } else if (engineRunning && bestEngineMove) {
+      if (!playButtonClicked) {
+        clearStockfishBestMoveArrow();
+        getArrowFromMove(bestEngineMove);
+      } else if (
+        playButtonClicked &&
+        currentPlayerIndex !== computerOpponentOptions[1]
+      ) {
+        const delay = Math.random() * (1200 - 400) + 400;
+        setTimeout(() => {
+          executeMove(bestEngineMove);
+        }, delay);
+      }
       setEngineRunningState(false);
     }
     /* else if (engineRunning && !engineMove && something to check undone after mate ) {
@@ -266,7 +271,6 @@ export const useAnalysis = (
   }, [
     currentEngineMove,
     bestEngineMove,
-    playButtonClicked,
     generateCurrentFen,
     engineInitialized,
     engineRunning,

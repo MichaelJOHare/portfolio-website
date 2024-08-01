@@ -27,7 +27,6 @@ export enum AnalysisType {
 
 export interface UseStockfishOptions {
   analysisType: AnalysisType | null;
-  executeMove: (move: ChessEngineMove) => void;
   filepath: string;
   skillLevel: number;
 }
@@ -40,7 +39,6 @@ export type ChessEngineMove = {
 
 export const useStockfish = ({
   analysisType,
-  executeMove,
   skillLevel,
   filepath,
 }: UseStockfishOptions) => {
@@ -134,7 +132,6 @@ export const useStockfish = ({
         const [, from, to, promotion] = line.match(FOUND_BEST_MOVE);
         setCurrentMove(null);
         setBestMove({ from, to, promotion });
-        executeMove({ from, to, promotion });
         setStatus(ChessEngineStatus.Ready);
       }
       if (ENGINE_IS_READY.test(line)) {
@@ -165,7 +162,7 @@ export const useStockfish = ({
         }
       }
     },
-    [lastArrowUpdate, lastDepthUpdate, executeMove]
+    [lastArrowUpdate, lastDepthUpdate]
   );
 
   const initializeEngine = useCallback(() => {
