@@ -339,7 +339,8 @@ export const useGameManagement = (): GameStateContext => {
     ) => {
       if (
         movingPiece.color !==
-        gameState.players[gameState.currentPlayerIndex].color
+          gameState.players[gameState.currentPlayerIndex].color ||
+        movingPiece.player.type === PlayerType.COMPUTER
       ) {
         return undefined;
       }

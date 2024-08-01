@@ -1,7 +1,7 @@
 "use client";
 
 import { useGameContext } from "../../hooks/useGameContext";
-import { Square } from "../../types";
+import { PlayerType, Square } from "../../types";
 
 interface Direction {
   left: boolean;
@@ -21,13 +21,20 @@ export default function Button({
   handleSquaresToHide,
   handleShowPromotionPanel,
 }: ButtonProps) {
-  const { undoMove, redoMove } = useGameContext();
+  const { undoMove, redoMove, players } = useGameContext();
   if (direction.left) {
     return (
       <button
         type="button"
         onClick={() => {
-          undoMove();
+          if (
+            players[0].type === PlayerType.COMPUTER ||
+            players[1].type === PlayerType.COMPUTER
+          ) {
+            [0, 1].forEach(() => undoMove());
+          } else {
+            undoMove();
+          }
           handleSquaresToHide([]);
           handleShowPromotionPanel(false);
           clearAllHighlights(); // find way to conditionally clear highlights based on move history length
@@ -57,7 +64,14 @@ export default function Button({
       <button
         type="button"
         onClick={() => {
-          redoMove();
+          if (
+            players[0].type === PlayerType.COMPUTER ||
+            players[1].type === PlayerType.COMPUTER
+          ) {
+            [0, 1].forEach(() => redoMove());
+          } else {
+            redoMove();
+          }
           handleSquaresToHide([]);
           handleShowPromotionPanel(false);
           clearAllHighlights();

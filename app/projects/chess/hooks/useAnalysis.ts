@@ -10,7 +10,14 @@ import {
   createCastlingMove,
   createStandardMove,
 } from "../utils";
-import { ArrowProps, Piece, PieceType, PlayerColor, Square } from "../types";
+import {
+  ArrowProps,
+  Piece,
+  PieceType,
+  PlayerColor,
+  PlayerType,
+  Square,
+} from "../types";
 
 export const useAnalysis = (
   isStockfishClassicalChecked: boolean,
@@ -224,6 +231,10 @@ export const useAnalysis = (
       setEngineInitState(true);
     } else if (playButtonClicked && !engineInitialized) {
       initializeEngine();
+      console.log(computerOpponentOptions, players);
+      computerOpponentOptions[1] === 0
+        ? (players[1].type = PlayerType.COMPUTER)
+        : (players[0].type = PlayerType.COMPUTER);
       setEngineInitState(true);
     } else if (!analysisType && !playButtonClicked && engineInitialized) {
       cleanUpEngine();
@@ -255,6 +266,7 @@ export const useAnalysis = (
         playButtonClicked &&
         currentPlayerIndex !== computerOpponentOptions[1]
       ) {
+        // delay to make move feel more natural
         const delay = Math.random() * (1200 - 400) + 400;
         setTimeout(() => {
           executeMove(bestEngineMove);
