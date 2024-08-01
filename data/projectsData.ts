@@ -12,7 +12,7 @@ const projectsData: Project[] = [
     description: `A chess game designed for both mobile and desktop browsers, written completely from scratch with React, TypeScript, 
     and TailwindCSS. Incorporates Stockfish AI, allowing players to either challenge the AI across various difficulty levels or 
     utilize it for in-depth, continuous game analysis.`,
-    imgSrc: "/assets/images/js_chess.png",
+    imgSrc: "/assets/images/ts_chess.png",
     href: "/projects/chess",
     playable: true,
   },
