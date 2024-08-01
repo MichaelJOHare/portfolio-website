@@ -40,7 +40,7 @@ export const StockfishOptionsModal = ({
 
   return (
     <div
-      className={`absolute top-0 left-0 w-full h-full mt-2 pb-2 flex items-center justify-center bg-opacity-50 transition-opacity ${
+      className={`absolute top-0 left-0 w-full h-fit lg:h-full mt-2 pb-2 flex items-center justify-center bg-opacity-50 transition-opacity ${
         isOpen ? "opacity-100 z-20" : "opacity-0 pointer-events-none z-0"
       }`}
     >
@@ -89,7 +89,7 @@ export const StockfishOptionsModal = ({
           <h1 className="flex self-center text-2xl pb-4 pr-4 lg:text-3xl">
             Stockfish Options
           </h1>
-          <div className="flex flex-row lg:flex-col justify-around">
+          <div className="flex flex-col md:flex-row lg:flex-col justify-around">
             <div className="flex flex-col">
               <h2 className="pt-4 text-2xl underline self-center">
                 Stockfish Analysis

@@ -138,15 +138,7 @@ export const useAnalysis = (
         }
       }
     },
-    [
-      board,
-      computerOpponentOptions,
-      convertNotationToSquare,
-      currentPlayerIndex,
-      finalizeMove,
-      isEnPassantMove,
-      playButtonClicked,
-    ]
+    [board, convertNotationToSquare, finalizeMove, isEnPassantMove]
   );
 
   const {
@@ -242,6 +234,8 @@ export const useAnalysis = (
     }
   }, [
     analysisType,
+    players,
+    computerOpponentOptions,
     playButtonClicked,
     engineInitialized,
     setEngineInitState,
@@ -286,7 +280,11 @@ export const useAnalysis = (
     generateCurrentFen,
     engineInitialized,
     engineRunning,
+    computerOpponentOptions,
+    playButtonClicked,
+    currentPlayerIndex,
     storedFen,
+    executeMove,
     setEngineRunningState,
     findMove,
     clearStockfishBestMoveArrow,
