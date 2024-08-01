@@ -112,6 +112,7 @@ export type GameStateContext = {
     targetSquare: Square,
     promotionMove?: PromotionMove
   ) => void;
+  finalizeMove: (move: Move) => void;
   undoMove: () => void;
   redoMove: () => void;
   resetGame: () => void;

@@ -90,6 +90,7 @@ export default function Board({
           promotionColor: move.piece.color,
           promotingPawn: move.piece,
         }));
+        // check if stockfish turn? to not hide
         handleSquaresToHide(
           getSquaresToHideDuringPromotion(move.to, move.piece.color)
         );

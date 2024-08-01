@@ -18,7 +18,7 @@ export const StockfishOptionsModal = ({
 }: StockfishOptionsModalProps) => {
   const menuRef = useRef<HTMLDivElement>(null);
   const [currentStrengthLevel, setCurrentStrengthLevel] = useState(0);
-  const [currentColorChoice, setCurrentColorChoice] = useState(0);
+  const [currentColorChoice, setCurrentColorChoice] = useState(-1);
   const [playButtonClicked, setPlayButtonClicked] = useState(false);
   const strengthLevels = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
@@ -128,7 +128,7 @@ export const StockfishOptionsModal = ({
                 <button
                   type="button"
                   className={`border hover:bg-slate-300 ${
-                    currentColorChoice === 1 && !playButtonClicked
+                    currentColorChoice === 0 && !playButtonClicked
                       ? "bg-slate-300"
                       : ""
                   }`}
@@ -150,7 +150,7 @@ export const StockfishOptionsModal = ({
                 <button
                   type="button"
                   className={`border hover:bg-slate-300 ${
-                    currentColorChoice === 3 && !playButtonClicked
+                    currentColorChoice === 1 && !playButtonClicked
                       ? "bg-slate-300"
                       : ""
                   }`}

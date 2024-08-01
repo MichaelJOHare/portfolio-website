@@ -1,8 +1,24 @@
 import { useCallback, useEffect, useState } from "react";
 import { useGameContext } from "./useGameContext";
 import { useStockfish, AnalysisType, ChessEngineMove } from "./useStockfish";
-import { toFEN, getSquareFromNotation } from "../utils";
-import { ArrowProps, PlayerColor } from "../types";
+import {
+  toFEN,
+  getSquareFromNotation,
+  isEmpty,
+  createPromotionMove,
+  createEnPassantMove,
+  createCastlingMove,
+  createStandardMove,
+} from "../utils";
+import {
+  ArrowProps,
+  Piece,
+  PieceType,
+  PlayerColor,
+  Square,
+  Move,
+  MoveType,
+} from "../types";
 
 export const useAnalysis = (
   isStockfishClassicalChecked: boolean,
@@ -25,12 +41,86 @@ export const useAnalysis = (
     moveHistory,
     halfMoveClock,
     fullMoveNumber,
+    finalizeMove,
   } = useGameContext();
   const analysisType = isStockfishClassicalChecked
     ? AnalysisType.CLASSICAL
     : isStockfishNnueChecked
     ? AnalysisType.NNUE
     : null;
+
+  const executeMove = (foundBestMove: ChessEngineMove) => {
+    if (
+      playButtonClicked &&
+      currentPlayerIndex !== computerOpponentOptions[1]
+    ) {
+      const fromSquare = convertNotationToSquare(foundBestMove?.from);
+      const toSquare = convertNotationToSquare(foundBestMove?.to);
+      if (fromSquare && toSquare) {
+        const movingPiece = board[fromSquare.row][fromSquare.col].piece;
+        const capturedPiece = board[toSquare.row][toSquare.col].piece;
+        const isEnPassant =
+          movingPiece &&
+          isEnPassantMove(movingPiece, fromSquare, toSquare) &&
+          capturedPiece;
+        const isCastling =
+          movingPiece && isCastlingMove(movingPiece, fromSquare, toSquare);
+
+        if (movingPiece) {
+          if (foundBestMove?.promotion) {
+            const promoType = determinePromotionType(foundBestMove.promotion);
+            const promoMove = createPromotionMove(
+              movingPiece,
+              fromSquare,
+              toSquare,
+              promoType,
+              capturedPiece
+            );
+            finalizeMove(promoMove);
+          } else if (isEnPassant) {
+            finalizeMove(
+              createEnPassantMove(
+                movingPiece,
+                fromSquare,
+                toSquare,
+                capturedPiece.currentSquare,
+                capturedPiece
+              )
+            );
+          } else if (isCastling) {
+            const king = movingPiece;
+            const isQueenside = fromSquare.col > toSquare.col;
+            const rookStartCol = isQueenside ? 0 : 7;
+            const rookEndCol = isQueenside ? 3 : 5;
+            const rook = board[fromSquare.row][rookStartCol].piece;
+            const rookFromSquare = board[fromSquare.row][rookStartCol];
+            const rookToSquare = board[fromSquare.row][rookEndCol];
+            const castleMove =
+              rook &&
+              createCastlingMove(
+                king,
+                rook,
+                fromSquare,
+                toSquare,
+                rookFromSquare,
+                rookToSquare
+              );
+            castleMove && finalizeMove(castleMove);
+          } else {
+            finalizeMove(
+              createStandardMove(
+                movingPiece,
+                fromSquare,
+                toSquare,
+                capturedPiece
+              )
+            );
+          }
+        }
+      }
+    }
+  };
+
   const {
     currentMove: currentEngineMove,
     bestMove: bestEngineMove,
@@ -41,7 +131,8 @@ export const useAnalysis = (
     cleanUpEngine,
   } = useStockfish({
     analysisType,
-    skillLevel: computerOpponentOptions[0] || 20,
+    executeMove,
+    skillLevel: computerOpponentOptions[0] || 10,
     filepath: "/stockfish/stockfish-nnue-16.js",
   });
 
@@ -62,6 +153,53 @@ export const useAnalysis = (
     moveHistory,
     players,
   ]);
+
+  const isEnPassantMove = (
+    movingPiece: Piece,
+    fromRowCol: Square,
+    toRowCol: Square
+  ) => {
+    return (
+      movingPiece.type === PieceType.PAWN &&
+      Math.abs(toRowCol.col - fromRowCol.col) === 1 &&
+      isEmpty(board, fromRowCol.row, fromRowCol.col)
+    );
+  };
+
+  const isCastlingMove = (
+    movingPiece: Piece,
+    fromRowCol: Square,
+    toRowCol: Square
+  ) => {
+    return (
+      movingPiece.type === PieceType.KING &&
+      Math.abs(toRowCol.col - fromRowCol.col) > 1
+    );
+  };
+
+  const convertNotationToSquare = (notation: string | undefined) => {
+    if (notation) {
+      const col = notation.charCodeAt(0) - "a".charCodeAt(0);
+      const row = 8 - parseInt(notation[1]);
+
+      return board[row][col];
+    }
+  };
+
+  const determinePromotionType = (char: string) => {
+    switch (char) {
+      case "q":
+        return PieceType.QUEEN;
+      case "r":
+        return PieceType.ROOK;
+      case "b":
+        return PieceType.BISHOP;
+      case "n":
+        return PieceType.KNIGHT;
+      default:
+        return PieceType.QUEEN;
+    }
+  };
 
   const getArrowFromMove = useCallback(
     (move: ChessEngineMove) => {
@@ -128,6 +266,7 @@ export const useAnalysis = (
   }, [
     currentEngineMove,
     bestEngineMove,
+    playButtonClicked,
     generateCurrentFen,
     engineInitialized,
     engineRunning,

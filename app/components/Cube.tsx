@@ -5,11 +5,11 @@ import * as THREE from "three";
 
 const Cube = () => {
   const cubeRef = useRef<HTMLDivElement>(null);
-  let cube: THREE.Mesh | undefined;
-  let renderer: THREE.WebGLRenderer | undefined;
-  let camera: THREE.PerspectiveCamera | undefined;
 
   useEffect(() => {
+    let cube: THREE.Mesh | undefined;
+    let renderer: THREE.WebGLRenderer | undefined;
+    let camera: THREE.PerspectiveCamera | undefined;
     if (cubeRef.current) {
       camera = new THREE.PerspectiveCamera(
         75,

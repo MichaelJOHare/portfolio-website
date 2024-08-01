@@ -256,6 +256,7 @@ export const useGameManagement = (): GameStateContext => {
       gameState.board,
       gameState.currentPlayerIndex,
       gameState.players,
+      gameState.piecesByPlayer,
     ]
   );
 
@@ -514,6 +515,7 @@ export const useGameManagement = (): GameStateContext => {
     initializeBoard,
     playerCanMove,
     handleMove,
+    finalizeMove,
     undoMove,
     redoMove,
     resetGame,
