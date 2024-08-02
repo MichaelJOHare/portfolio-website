@@ -40,7 +40,7 @@ export const StockfishOptionsModal = ({
 
   return (
     <div
-      className={`absolute top-0 left-0 w-full h-fit lg:h-full mt-2 pb-2 flex items-center justify-center bg-opacity-50 transition-opacity ${
+      className={`absolute top-0 left-0 w-full lg:h-full mt-2 pb-2 flex items-center justify-center bg-opacity-50 transition-opacity ${
         isOpen ? "opacity-100 z-20" : "opacity-0 pointer-events-none z-0"
       }`}
     >
