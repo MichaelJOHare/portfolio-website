@@ -86,7 +86,7 @@ export const StockfishOptionsModal = ({
           ref={menuRef}
           className="flex flex-col bg-white rounded-lg p-4 w-full h-full dark:bg-gray-700"
         >
-          <h1 className="flex self-center text-2xl pb-4 pr-4 lg:text-3xl">
+          <h1 className="flex self-center text-2xl pb-4 pr-4 lg:text-2xl 2xl:text-3xl">
             Stockfish Options
           </h1>
           <div className="flex flex-col md:flex-row lg:flex-col justify-around">
@@ -103,14 +103,12 @@ export const StockfishOptionsModal = ({
               <h3 className="self-center pt-2 font-bold text-xl">
                 Strength level
               </h3>
-              <ul className="self-center">
+              <ul className="self-center grid grid-cols-5 lg:grid-cols-5 gap-1">
                 {strengthLevels.map((level) => (
                   <button
                     type="button"
                     key={level}
                     className={`border px-1 text-2xl hover:bg-slate-300 hover:text-slate-600 ${
-                      level !== 10 ? "mr-1" : ""
-                    } ${
                       level === currentStrengthLevel && !playButtonClicked
                         ? "bg-slate-300"
                         : ""
