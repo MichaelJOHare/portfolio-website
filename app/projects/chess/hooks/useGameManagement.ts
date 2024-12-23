@@ -392,7 +392,6 @@ export const useGameManagement = (): GameStateContext => {
       gameState.board
     );
     const currentPlayerMoves = generateLegalMoves(rawMoves);
-    console.log(currentPlayerMoves);
     setGameState((prevState) => ({
       ...prevState,
       currentPlayerMoves: currentPlayerMoves,

@@ -92,7 +92,7 @@ export default function Board({
         }));
         // check if stockfish turn? to not hide
         handleSquaresToHide(
-          getSquaresToHideDuringPromotion(move.to, move.piece.color)
+          getSquaresToHideDuringPromotion(move, move.piece.color)
         );
         handleShowPromotionPanel(true);
       } else {

@@ -101,14 +101,19 @@ export const isKingInCheck = (opponentMoves: Move[]) => {
 };
 
 export const getSquaresToHideDuringPromotion = (
-  square: Square,
+  move: Move,
   color: PlayerColor
 ) => {
+  const toSquare = move.to;
   const squaresToHide = [];
   const increment = color === PlayerColor.WHITE ? 1 : -1;
-  for (let i = 1; i < 4; i++) {
-    squaresToHide.push({ row: square.row + i * increment, col: square.col });
+  for (let i = 0; i < 4; i++) {
+    squaresToHide.push({
+      row: toSquare.row + i * increment,
+      col: toSquare.col,
+    });
   }
+  squaresToHide.push({ row: move.from.row, col: move.from.col });
   return squaresToHide;
 };
 
