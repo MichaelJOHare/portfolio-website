@@ -36,11 +36,7 @@ export const pawnMovementStrategy: MovementStrategy = (
     legalMoves: Move[]
   ) => {
     const newRow = row + direction;
-    if (
-      ((direction === -1 && newRow > backRank) ||
-        (direction === 1 && newRow < backRank)) &&
-      isEmpty(board, newRow, col)
-    ) {
+    if (newRow !== backRank && isEmpty(board, newRow, col)) {
       legalMoves.push(
         createStandardMove(
           piece,
@@ -80,6 +76,7 @@ export const pawnMovementStrategy: MovementStrategy = (
     row: number,
     col: number,
     direction: number,
+    backRank: number,
     piece: Piece,
     board: Square[][],
     legalMoves: Move[]
@@ -94,6 +91,9 @@ export const pawnMovementStrategy: MovementStrategy = (
           targetPiece && targetPiece.color !== piece.color
             ? targetPiece
             : undefined;
+        if (capturedPiece && newRow === backRank) {
+          return;
+        }
         capturedPiece &&
           legalMoves.push(
             createStandardMove(
@@ -209,7 +209,7 @@ export const pawnMovementStrategy: MovementStrategy = (
 
   addNormalMoves(row, col, direction, backRank, piece, board, legalMoves);
   addDoubleMove(row, col, direction, startingRow, piece, board, legalMoves);
-  addCaptureMoves(row, col, direction, piece, board, legalMoves);
+  addCaptureMoves(row, col, direction, backRank, piece, board, legalMoves);
   addEnPassantMoves(row, col, piece, board, moveHistory, legalMoves);
   addPromotionMoves(row, col, piece, board, legalMoves);
 
