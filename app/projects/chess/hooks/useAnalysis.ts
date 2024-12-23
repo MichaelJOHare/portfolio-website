@@ -250,6 +250,7 @@ export const useAnalysis = (
       setStoredFen(currentFen);
       setEngineRunningState(true);
     } else if (engineRunning && currentEngineMove && !playButtonClicked) {
+      // find out why engineRunning stays true when analysis is turned off before max depth is reached
       clearStockfishBestMoveArrow();
       getArrowFromMove(currentEngineMove);
     } else if (engineRunning && bestEngineMove) {
@@ -260,7 +261,7 @@ export const useAnalysis = (
         playButtonClicked &&
         currentPlayerIndex !== computerOpponentOptions[1]
       ) {
-        // delay to make move feel more natural
+        // intentional delay to make computer move feel more natural
         const delay = Math.random() * (1200 - 400) + 400;
         setTimeout(() => {
           executeMove(bestEngineMove);
