@@ -9,6 +9,8 @@ import {
   Highlighter,
 } from "../types";
 
+// implement previoua move highlighter
+
 export const useChessboardHighlighter = (): Highlighter => {
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasMovedOutOfSquare, setHasMovedOutOfSquare] = useState(false);

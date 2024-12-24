@@ -8,6 +8,8 @@ import GameProvider from "../../providers/GameProvider";
 import { Square } from "../../types";
 import { useChessboardHighlighter } from "../../hooks/useChessboardHighlighter";
 
+// implement flip board *despair*
+
 export default function ChessGameContainer() {
   const highlighter = useChessboardHighlighter();
   const [stockfishClassicalChecked, setStockfishClassicalChecked] =
