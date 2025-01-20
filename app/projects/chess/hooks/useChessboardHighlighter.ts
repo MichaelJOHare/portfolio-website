@@ -9,7 +9,7 @@ import {
   Highlighter,
 } from "../types";
 
-// implement previoua move highlighter
+// implement previous move highlighter
 
 export const useChessboardHighlighter = (): Highlighter => {
   const [isDrawing, setIsDrawing] = useState(false);

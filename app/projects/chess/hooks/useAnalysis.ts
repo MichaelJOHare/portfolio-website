@@ -250,7 +250,6 @@ export const useAnalysis = (
       setStoredFen(currentFen);
       setEngineRunningState(true);
     } else if (engineRunning && currentEngineMove && !playButtonClicked) {
-      // find out why engineRunning stays true when analysis is turned off before max depth is reached
       clearStockfishBestMoveArrow();
       getArrowFromMove(currentEngineMove);
     } else if (engineRunning && bestEngineMove) {
@@ -267,6 +266,10 @@ export const useAnalysis = (
           executeMove(bestEngineMove);
         }, delay);
       }
+      setEngineRunningState(false);
+    }
+    if (engineRunning && !analysisType && !playButtonClicked) {
+      stopAnalysis();
       setEngineRunningState(false);
     }
     /* else if (engineRunning && !engineMove && something to check undone after mate ) {
