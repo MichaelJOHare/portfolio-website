@@ -24,7 +24,12 @@ const ThemeSwitch = () => {
         )
       }
     >
-      <Expand duration={750} placeholder={undefined} />
+      <Expand
+        duration={750}
+        placeholder={undefined}
+        onPointerEnterCapture={undefined}
+        onPointerLeaveCapture={undefined}
+      />
     </div>
   );
 };
